@@ -1,0 +1,1191 @@
+--- This is a mod for pelicans, phantoms, and spirits. It has smooth animations and complex navigation system. The actions of the dropships are completely programmable with forge placed objects. The ships are currently only transport devices for players and vehicles. I plan to add turret functionality eventually but as of this post it is not functional. As of this post the code is very expensive (475 actions). This is only the first prototype and more refining will be done. Porting this to other games should be very easy since it doesn't use many global variables. It does use a lot of local variables to objects. I hope to include this in an invasion game mode at some point. The forge instructions are detailed in the comments in the code.
+
+-- One massive inefficiency is the placement of players in each vehicle. 8 placements per ship type for 24 different possible placements each with 2 actions. Could be reduced dramatically.
+
+
+--====================================================================================================================================================================
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+-------------------------------------------------------------------------AI Dropships---------------------------------------------------------------------------------
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+--====================================================================================================================================================================
+
+--Author: Michael Blaine 
+--Gamertag: poodlepuncher00
+--Credit: The gametyper comunity for answering my many many questions
+--Function: Creates AI dropships that transport troops and cargo
+
+
+--====================================================================================================================================================================
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+------------------------------------------------------------------------Forge Instructions----------------------------------------------------------------------------
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+--====================================================================================================================================================================
+
+--====================================================================================================================================================================
+--Create Dropship
+--====================================================================================================================================================================
+
+--The Dropship requires at least 3 hill markers to work. For your dropship choose a unique team (no assosiated with player team). Set each of the three hill markers to that team
+--label each hill marker "drop_ship" and set their spawn sequence to 1,2,3 respectively. The position of them does not matter but they have to exist. The position of the first 
+--hill marker (with spawn sequence of 1) is the location and oreintaton that the drop ship will spawn with. By default, the drop ship is a pelican. If you want to change that,
+--you need to add a setting object. A setting object is a hill marker with the forge label "setting". It is used by placing the setting object inside the shape of the object
+--that the setting applies to. To change the dropship type to a phantom, place a setting object inside the shape of the first dropship hill marker ("drop_ship" label with spawn
+--sequence of 1). Change the spawn sequence of the setting object to 2. Now its a phantom because it's first dropship hill marker has the setting hill marker with a spawn sequence
+--of 2 in its shape. To make the dropship a spirit, add a setting object with the spawn sequence of 3 to the first dropship hill marker. Since the spirit cannot be placed by
+--the script, place a spirit in forge, change its team to the unique team that all of the drop ship objects have, set the spawn sequence to 4, and set its forge label to "dropship".
+--Here is a summary of all of the parts for each dropship:
+
+--+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+--|Pelican object settup summary                                                                                                                                |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Object Type    |Forge label     |Spawn Sequence |Team   |Notes                                                                                               |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |1              |Unique |Decides orientation and position of dropship, place setting object in this object's shape           |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |2              |Unique |Same unique team used in first one, position does not matter                                        |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |3              |Unique |Same unique team used in first and second one, position does not matter                             |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+
+--+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+--|Phantom object settup summary                                                                                                                                |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Object Type    |Forge label     |Spawn Sequence |Team   |Notes                                                                                               |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |1              |Unique |Decides orientation and position of dropship, place setting object in this object's shape           |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |2              |Unique |Same unique team used in first one, position does not matter                                        |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |3              |Unique |Same unique team used in first and second one, position does not matter                             |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Setting        |SETTING         |2              |N/A    |Place inside first dropship object's shape                                                          |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+
+--+-------------------------------------------------------------------------------------------------------------------------------------------------------------+
+--|Spirit object settup summary                                                                                                                                 |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Object Type    |Forge label     |Spawn Sequence |Team   |Notes                                                                                               |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |1              |Unique |Decides orientation and position of dropship, place setting object in this object's shape           |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |2              |Unique |Same unique team used in first one, position does not matter                                        |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Hill Marker    |DROP_SHIP       |3              |Unique |Same unique team used in first and second one, position does not matter                             |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Setting        |SETTING         |2              |N/A    |Place inside first dropship object's shape                                                          |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+--|Spirit scenery |DROP_SHIP       |4              |Unique |Same unique team used in the first 3 dropship objects, position does not matter                     |
+--+---------------+----------------+---------------+-------+----------------------------------------------------------------------------------------------------+
+
+--====================================================================================================================================================================
+--Way Points
+--====================================================================================================================================================================
+
+--To create the way points place a hill marker with forge label "way_point". Set the spawn sequence in order of completion starting with spawn sequence of 1
+--The dropship will go through each way point in order of spawn sequence from 1 to the end. Once at the end, the dropship stays still until it discovers a new way_point from the next invasion phase 
+--Set the team to the unique team of the first dropship hill marker. This tells apart which way_point belongs to what. Now you have a working dropship. Add some more way_points to
+--complete your desired path. Play with the oreintation of the way points to get a better looking flight path. The dropship might not be able to make tight turns and if it floats
+--around your destination instead of touching it, then you either need to adjust your path or add a complete stop (see the next step). The dropship will slowly match the 
+--rotation of the way point so place them facing the direction they need to go
+
+--====================================================================================================================================================================
+--Stop points
+--====================================================================================================================================================================
+
+--To modify a way point to get it to come to a complete stop, place a hill marker with the forge label "setting" with it's team to red inside the shape of the way point
+--red team with the setting label means to stop. The spawn sequence of that setting tells it how long to wait in seconds. dont go negative. After a complete stop the pelican
+--faces exactly toward the next way_point so this might be useful for tight turns where it can't reach the next point.
+
+--====================================================================================================================================================================
+--Switches and loops
+--====================================================================================================================================================================
+
+--Using a setting way point with the team of blue signifies a switch in sequence of way points. The spawn sequence of the setting tells which to switch to. Place one at the end to go back to the first
+--way point for a loop
+
+--====================================================================================================================================================================
+--drop offs
+--====================================================================================================================================================================
+
+--Using a setting with green team on a way point, it drops off players and vehicles immideatly adter reach the point. If the spawn sequence is 1 then it only drops off people
+--If the spawn sequence is 2 then it only drops off the payload. If the spawn sequence is 0 (default) then it drops off both players and the payload
+
+--====================================================================================================================================================================
+--pick up zones
+--====================================================================================================================================================================
+
+--To create a pick up zone, place a hill marker with label "pick_up_zone" and set the spawn sequence to a unique number. Set the team to the player's team
+--If the team is set to neutral team, All vehicles and players can ride
+
+--====================================================================================================================================================================
+--pick ups
+--====================================================================================================================================================================
+
+--place a setting object with orange team on the way point of your choice. Set the spawn sequence to the unique spawn sequenc of the pick up zone in step 6.
+--When dropship arrives at that point then it will teleport the contents of the pick up zone to the dropship.
+
+--====================================================================================================================================================================
+--Vehicle setup 
+--====================================================================================================================================================================
+
+--Change the team of the vehicles to the player's team. The dropship will only pick up vehicles with the pick up zone's team designation. Same goes to players
+
+
+--====================================================================================================================================================================
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+----------------------------------------------------------------Variable declarations--------------------------------------------------------------------------------
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+--====================================================================================================================================================================
+
+--====================================================================================================================================================================
+--temporary global variables
+--====================================================================================================================================================================
+
+alias temporary_global_number1 = allocate global.number --temporary global number used throughout the code
+alias temporary_global_number2 = allocate global.number --temporary global number used throughout the code
+alias temporary_global_number3 = allocate global.number --temporary global number used throughout the code
+alias temporary_global_number4 = allocate global.number --temporary global number used throughout the code
+alias temporary_global_object1 = allocate global.object --temporary global object used throughout the code
+alias temporary_global_object2 = allocate global.object --temporary global object used throughout the code
+alias temporary_hill_marker1 = allocate global.object --temporary hill marker placed in certain places as reference 
+alias temporary_hill_marker2 = allocate global.object --temporary hill marker placed in certain places as reference 
+
+
+alias current_way_point = temporary_global_object1 --remebers the way_point being initialized in initialize dropships
+alias current_drop_ship = temporary_global_object1 --remembers the dropship in initialize dropships
+alias current_pick_up_zone = temporary_global_object1 --used to remeber the pick up zone used in the pick up section
+alias current_vehicle = temporary_global_object2 --used to remeber the pick up zone used in the pick up section
+
+
+alias pelican_distance_option_1 = temporary_global_number1 --used to remeber a distance in go_to and copy_rotaion_slowly_horizontially function
+alias pelican_distance_option_2 = temporary_global_number2 --used to remeber a distance in go_to and copy_rotaion_slowly_horizontially function
+alias pelican_distance_option_3 = temporary_global_number3 --used to remeber a distance in go_to and copy_rotaion_slowly_horizontially function
+alias turn_decision = temporary_global_number4 --remembers what was the best route in the go_to function
+alias last_was_stop = temporary_global_number1 --used to remeber if the last way_point was a stop in the way_point determiner section
+alias current_rate = temporary_global_number1 --current speed
+alias distance_deccel = temporary_global_number1 --the minimum stoping distance with certain speed and acceleration
+alias distance_current = temporary_global_number2 --used to remeber distance in the deceleration section
+alias found_spot = temporary_global_number1 --used in to keep track if a spot has been found in the seat placment section
+alias pelican_reference_1 = temporary_hill_marker1 --a small hill marker that gets pushed around a lot. Used for referance
+alias pelican_reference_2 = temporary_hill_marker2 --a small hill marker that gets pushed around a lot. Used for referance
+alias dropship_number = temporary_global_number1 --used in update_dropship and set by update all dropships to remeber which dropship to update
+
+
+
+--====================================================================================================================================================================
+--global variable in FaceExactlyTowards() 
+--====================================================================================================================================================================
+alias between = allocate global.object --just a temporarly used variable
+alias lookat = allocate global.object --variable needs to be set to destination
+alias between2 = allocate global.object --just a temporarly used variable
+alias rotated = allocate global.object --just a temporarly used variable
+--===============================--
+
+
+
+--====================================================================================================================================================================
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+------------------------------------------------------------------------Functions-------------------------------------------------------------------------------------
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+--====================================================================================================================================================================
+
+
+
+--====================================================================================================================================================================
+--The main block of code that updates a specific dropship
+--==================================================================================================================================================================== 
+function update_dropship()
+    do
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Declaring objects that have variables local to them (creates conflict if i try to access a variable local to and object local to an object)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        alias dropship_object = allocate temporary object
+        alias dropship_object_2 = allocate temporary object
+        alias dropship_object_3 = allocate temporary object
+        alias way_point = allocate temporary object
+        alias next_stop = allocate temporary object
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Finding each dropship object specific to this dropship
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        for each object with label "drop_ship" do
+            alias dropship_ID_self = current_object.number[0]
+            if dropship_number == dropship_ID_self then
+                if current_object.spawn_sequence == 1 then
+                    dropship_object = current_object
+                end
+                if current_object.spawn_sequence == 2 then
+                    dropship_object_2 = current_object
+                end
+                if current_object.spawn_sequence == 3 then
+                    dropship_object_3 = current_object
+                end
+            end
+        end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Defining each local variable using all 3 of the drop ship objects
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        alias pelican_obj = dropship_object.object[0]
+        alias pelican_sprite = dropship_object.object[1]
+        alias dropship_payload = dropship_object.object[2]
+        alias dropship_ID_self = dropship_object.number[0]
+        alias speed_cycle = dropship_object.number[1]--number used as timer, goes to ten and resets
+        alias speed = dropship_object.number[2] --signifies current speed 1-10 1 being ten percent and 10 being 100 percent speed
+        alias cycle_steps = dropship_object.number[3] --how many steps each cycle
+        alias way_point_num = dropship_object.number[4]
+        alias next_stop_number = dropship_object.number[5]
+        alias wait_timer = dropship_object.number[6]
+        alias dropship_type = dropship_object.number[7]
+        alias finished = dropship_object_2.number[1]
+        alias past_pick_up_zone = dropship_object_2.number[2]
+        alias troop1 = dropship_object_3.object[0]
+        alias troop2 = dropship_object_3.object[1]
+        alias troop3 = dropship_object_3.object[2]
+        alias troop4 = dropship_object_3.object[3]
+        alias troop5 = dropship_object_2.object[0]
+        alias troop6 = dropship_object_2.object[1]
+        alias troop7 = dropship_object_2.object[2]
+        alias troop8 = dropship_object_2.object[3]
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Creates the base object that will do the movements
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        if pelican_obj == no_object then
+            for each object with label "drop_ship" do
+                alias dropship_ID = current_object.number[0]
+                if dropship_ID == dropship_ID_self then
+                    pelican_obj = current_object.place_at_me(hill_marker, none, never_garbage_collect, 0, 0, 0, none)
+                    pelican_obj.copy_rotation_from(current_object, true)
+                end
+            end
+        end
+        
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Finds the dropship sprite depending on which type it is. Makes it invincible
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        if pelican_sprite == no_object then
+            if dropship_type == 1 then
+                pelican_sprite = pelican_obj.place_at_me(pelican_scenery, none, never_garbage_collect, 0, 0, 0, none)
+            end
+            if dropship_type == 2 then
+                pelican_sprite = pelican_obj.place_at_me(phantom, none, never_garbage_collect, 0, 0, 0, none)
+            end
+            if dropship_type == 3 then
+                for each object with label "drop_ship" do
+                    alias dropship_ID = current_object.number[0]
+                    if current_object.spawn_sequence == 4 and dropship_ID == dropship_ID_self then
+                        pelican_sprite = current_object
+                        pelican_sprite.set_garbage_collection_disabled(1)
+                    end
+                end
+            end
+        end
+        pelican_sprite.health = 500
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Makes sure the sprite is attached to the base at all times
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        pelican_sprite.attach_to(pelican_obj,0,0,0,relative)
+        pelican_sprite.detach()
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Finds the way point object and the next_stop way point
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        if way_point_num == 0 then
+            way_point_num = 1
+        end
+        if next_stop_number == 0 then
+            next_stop_number = 1
+        end
+        for each object with label "way_point" do
+            alias dropship_ID = current_object.number[0]
+            if dropship_ID == dropship_ID_self then
+                if current_object.spawn_sequence == way_point_num then
+                    way_point = current_object
+                end
+                if current_object.spawn_sequence == next_stop_number then
+                    next_stop = current_object
+                end
+            end
+        end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Defines the variables local to the way points now that they are found
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        alias wait_option = way_point.number[1]
+        alias wait_time = way_point.number[2]
+        alias switch_to = way_point.number[3]
+        alias pick_up_zone = way_point.number[4]
+        alias drop_off_decision = way_point.number[5]
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Fantastic function sopitive made to face an object exactly toward another object
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        function FaceExactlyTowards()
+            alias basis = pelican_obj
+            between = basis.place_between_me_and(lookat, sound_emitter_alarm_2, 0)
+            between2 = between.place_between_me_and(between, sound_emitter_alarm_2, 0)
+            between2.attach_to(between, -50, 0, 0, relative)
+            rotated = between2.place_between_me_and(between, sound_emitter_alarm_2, 0)
+            rotated.face_toward(lookat, 0, 0, 0)
+            basis.copy_rotation_from(rotated, true)
+            rotated.delete()
+            between.delete()
+        end
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Function I made to go to an objective incrementally
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        function go_to()
+            do
+                --place hill marker reference object if does not exist yet
+                if pelican_reference_1 == no_object then
+                    pelican_reference_1 = pelican_obj.place_at_me(hill_marker, none, never_garbage_collect, 0, 0, 0, none)
+                end
+                if pelican_reference_2 == no_object then
+                    pelican_reference_2 = pelican_obj.place_at_me(hill_marker, none, never_garbage_collect, 0, 0, 0, none)
+                end
+                --===============================--
+                
+                --records the distance if pelican goes a little to the left--
+                pelican_reference_1.attach_to(pelican_obj,0,-6,0, relative)
+                pelican_reference_1.detach()
+                pelican_distance_option_1 = way_point.get_distance_to(pelican_reference_1)
+                --===============================--
+
+                --records the distance if pelican goes straight--
+                pelican_reference_1.attach_to(pelican_obj,1,0,0, relative)
+                pelican_reference_1.detach()
+                pelican_distance_option_2 = way_point.get_distance_to(pelican_reference_1)
+                --===============================--
+
+                --records the distance if pelican goes a little to the left--
+                pelican_reference_1.attach_to(pelican_obj,0,6,0, relative)
+                pelican_reference_1.detach()
+                pelican_distance_option_3 = way_point.get_distance_to(pelican_reference_1)
+                --===============================--
+
+                --checks which distance was the least and records it. changes in <= and < decide where it goes if options tie
+                if pelican_distance_option_1 <= pelican_distance_option_2 and pelican_distance_option_1 <= pelican_distance_option_3 then
+                    turn_decision = 1
+                end
+                if pelican_distance_option_2 <= pelican_distance_option_1 and pelican_distance_option_2 < pelican_distance_option_3 then
+                    turn_decision = 2
+                end
+                if pelican_distance_option_3 < pelican_distance_option_1 and pelican_distance_option_3 <= pelican_distance_option_2 then
+                    turn_decision = 3
+                end
+                --===============================--
+
+                --records the distance if pelican goes a little down--
+                pelican_reference_1.attach_to(pelican_obj,0,0,-6, relative)
+                pelican_reference_1.detach()
+                pelican_distance_option_1 = way_point.get_distance_to(pelican_reference_1)
+                --===============================--
+
+
+                --records the distance if pelican goes a little up--
+                pelican_reference_1.attach_to(pelican_obj,0,0,6, relative)
+                pelican_reference_1.detach()
+                pelican_distance_option_3 = way_point.get_distance_to(pelican_reference_1)
+                --===============================--
+
+                --checks which option (up down straight) was most effeiceint and uses if left right or straight was more effeicent. --
+                --It places a reference at that most effeicent angle and faces the pelican to it--
+                if pelican_distance_option_1 <= pelican_distance_option_2 and pelican_distance_option_1 <= pelican_distance_option_3 then--if down was most effeicent 
+                    if turn_decision == 1 then--if left was most effeicent 
+                        pelican_reference_1.attach_to(pelican_obj,127,-1,-1, relative)
+                        pelican_reference_1.detach()
+                        lookat = pelican_reference_1
+                        FaceExactlyTowards()
+                    end
+                    if turn_decision == 2 then--if straight was most effeicent 
+                        pelican_reference_1.attach_to(pelican_obj,127,0,-1, relative)
+                        pelican_reference_1.detach()
+                        lookat = pelican_reference_1
+                        FaceExactlyTowards()
+                    end
+                    if turn_decision == 3 then--if right was most effeicent 
+                        pelican_reference_1.attach_to(pelican_obj,127,1,-1, relative)
+                        pelican_reference_1.detach()
+                        lookat = pelican_reference_1
+                        FaceExactlyTowards()
+                    end
+                end
+                if pelican_distance_option_2 <= pelican_distance_option_1 and pelican_distance_option_2 < pelican_distance_option_3 then--if straight was most effeicent 
+                    if turn_decision == 1 then--if left was most effeicent 
+                        pelican_obj.face_toward(pelican_obj, 127, -1, 0)
+                    end
+                    if turn_decision == 2 then--if left was most effeicent 
+                        lookat = way_point
+                        FaceExactlyTowards()
+                        pelican_obj.face_toward(pelican_obj, 127, -1, 0)
+                    end
+                    if turn_decision == 3 then--if right was most effeicent 
+                        pelican_obj.face_toward(pelican_obj, 127, 1, 0)
+                    end
+                end
+                if pelican_distance_option_3 < pelican_distance_option_1 and pelican_distance_option_3 <= pelican_distance_option_2 then--if up was most effeicent 
+                    if turn_decision == 1 then--if left was most effeicent 
+                        pelican_reference_1.attach_to(pelican_obj,127,-1,1, relative)
+                        pelican_reference_1.detach()
+                        lookat = pelican_reference_1
+                        FaceExactlyTowards()
+                    end
+                    if turn_decision == 2 then--if straight was most effeicent 
+                        pelican_reference_1.attach_to(pelican_obj,127,0,1, relative)
+                        pelican_reference_1.detach()
+                        lookat = pelican_reference_1
+                        FaceExactlyTowards()
+                    end
+                    if turn_decision == 3 then--if right was most effeicent 
+                        pelican_reference_1.attach_to(pelican_obj,127,1,1, relative)
+                        pelican_reference_1.detach()
+                        lookat = pelican_reference_1
+                        FaceExactlyTowards()
+                    end
+                end
+                --===============================--
+
+                --makes the pelican move forward 1
+                pelican_reference_1.attach_to(pelican_obj,1,0,0, relative)
+                pelican_reference_1.detach()
+                pelican_obj.attach_to(pelican_reference_1,0,0,0, relative)
+                pelican_obj.detach()
+                --===============================--
+            end
+        end
+
+
+
+
+
+
+
+
+        
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--function that works exacly like copy rotation of but does it incrementially
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        function copy_rotaion_of_slowly_horizontal()
+            --create if does not exist pelican sprite object and attaches it to the base--
+            --===============================--
+            
+
+            --places a reference object at horizontial angle of way point at location of pelican
+            pelican_reference_1.attach_to(pelican_obj,0,0,0,relative)--places reference point at pelican
+            pelican_reference_1.detach()--detaches
+            pelican_reference_1.copy_rotation_from(way_point, true)--copies rotation from way_point
+            pelican_reference_2.attach_to(pelican_reference_1,127,0,0,relative)--places second reference point at way point direction
+            pelican_reference_2.detach()--detaches
+            pelican_reference_1.copy_rotation_from(pelican_sprite, true)--copies rotation of sprite so that it is flat
+            pelican_reference_1.face_toward(pelican_reference_2, 0, 0, 0)--makes the flat reference point point it the same horizontal direction as the way_point
+            pelican_reference_2.attach_to(pelican_reference_1,127,0,0,relative)--attaches reference point far infront of the waypoint horizontail direction goal
+            pelican_reference_2.detach()--detaches
+            --===============================--
+
+
+            --attaches reference probe and checks distance for turning left
+            pelican_reference_1.attach_to(pelican_sprite,126,-6,0,relative)
+            pelican_reference_1.detach()
+            pelican_distance_option_1 = pelican_reference_2.get_distance_to(pelican_reference_1)
+            --===============================--
+
+
+            --attaches reference probe and checks distance for turning straight
+            pelican_reference_1.attach_to(pelican_sprite,127,0,0,relative)
+            pelican_reference_1.detach()
+            pelican_distance_option_2 = pelican_reference_2.get_distance_to(pelican_reference_1)
+            --===============================--
+
+
+            --attaches reference probe and checks distance for turning right
+            pelican_reference_1.attach_to(pelican_sprite,126,6,0,relative)
+            pelican_reference_1.detach()
+            pelican_distance_option_3 = pelican_reference_2.get_distance_to(pelican_reference_1)
+            --===============================--
+
+            --finds which turn option was most effeiceint turns a tiny bit that dirction 
+            if pelican_distance_option_1 <= pelican_distance_option_2 and pelican_distance_option_1 <= pelican_distance_option_3 then
+                pelican_sprite.face_toward(pelican_sprite, 127, -1, 0)
+            end
+            --if pelican_distance_option_2 <= pelican_distance_option_1 and pelican_distance_option_2 < pelican_distance_option_3 then
+                --pelican_sprite.face_toward(way_point, 0, 0, 0)
+            --end
+            if pelican_distance_option_3 < pelican_distance_option_1 and pelican_distance_option_3 <= pelican_distance_option_2 then
+                pelican_sprite.face_toward(pelican_sprite, 127, 1, 0)
+            end
+            --===============================--
+        end
+        --===============================--
+        
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Operates the wait timer which is controled by way point settings
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        if wait_timer != 0 then
+            wait_timer -= 1
+        end
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--attach vehicle payloads to dropship depending on what type it is
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        do
+            if dropship_payload != no_object then
+                if dropship_type == 1 then
+                    if dropship_payload.is_of_type(warthog) then
+                        dropship_payload.attach_to(pelican_sprite,-30,0,10,relative)
+                    end
+                    if dropship_payload.is_of_type(scorpion) then
+                        dropship_payload.attach_to(pelican_sprite,-35,0,6,relative)
+                    end
+                    if dropship_payload.is_of_type(mongoose) then
+                        dropship_payload.attach_to(pelican_sprite,-30,0,13,relative)
+                    end
+                end
+                if dropship_type == 2 then
+                    if dropship_payload.is_of_type(wraith) then
+                        dropship_payload.attach_to(pelican_sprite,0,0,0,relative)
+                    end
+                    if dropship_payload.is_of_type(revenant) then
+                        dropship_payload.attach_to(pelican_sprite,0,0,3,relative)
+                    end
+                    if dropship_payload.is_of_type(ghost) then
+                        dropship_payload.attach_to(pelican_sprite,0,0,5,relative)
+                    end
+                end
+                if dropship_type == 3 then
+                    if dropship_payload.is_of_type(ghost) then
+                        dropship_payload.attach_to(pelican_sprite,0,0,18,relative)
+                    end
+                end
+                dropship_payload.detach()
+                dropship_payload.copy_rotation_from(pelican_sprite, true)
+                
+            end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--attach players to their respective locations on the ship depending on what type it is
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            if dropship_type == 1 then
+                if troop1 != no_object then
+                    troop1.attach_to(pelican_sprite,20,4,5,relative)
+                    troop1.detach()
+                end
+                if troop2 != no_object then
+                    troop2.attach_to(pelican_sprite,20,-4,5,relative)
+                    troop2.detach()
+                end
+                if troop3 != no_object then
+                    troop3.attach_to(pelican_sprite,16,4,5,relative)
+                    troop3.detach()
+                end
+                if troop4 != no_object then
+                    troop4.attach_to(pelican_sprite,16,-4,5,relative)
+                    troop4.detach()
+                end
+                if troop5 != no_object then
+                    troop5.attach_to(pelican_sprite,12,4,5,relative)
+                    troop5.detach()
+                end
+                if troop6 != no_object then
+                    troop6.attach_to(pelican_sprite,12,-4,5,relative)
+                    troop6.detach()
+                end
+                if troop7 != no_object then
+                    troop7.attach_to(pelican_sprite,8,4,5,relative)
+                    troop7.detach()
+                end
+                if troop8 != no_object then
+                    troop8.attach_to(pelican_sprite,8,-4,5,relative)
+                    troop8.detach()
+                end
+            end
+            if dropship_type == 2 then
+                if troop1 != no_object then
+                    troop1.attach_to(pelican_sprite,0,12,16,relative)
+                    troop1.detach()
+                end
+                if troop2 != no_object then
+                    troop2.attach_to(pelican_sprite,0,-12,16,relative)
+                    troop2.detach()
+                end
+                if troop3 != no_object then
+                    troop3.attach_to(pelican_sprite,4,12,16,relative)
+                    troop3.detach()
+                end
+                if troop4 != no_object then
+                    troop4.attach_to(pelican_sprite,4,-12,16,relative)
+                    troop4.detach()
+                end
+                if troop5 != no_object then
+                    troop5.attach_to(pelican_sprite,-4,12,16,relative)
+                    troop5.detach()
+                end
+                if troop6 != no_object then
+                    troop6.attach_to(pelican_sprite,-4,-12,16,relative)
+                    troop6.detach()
+                end
+                if troop7 != no_object then
+                    troop7.attach_to(pelican_sprite,0,26,12,relative)
+                    troop7.detach()
+                end
+                if troop8 != no_object then
+                    troop8.attach_to(pelican_sprite,0,-26,12,relative)
+                    troop8.detach()
+                end
+                
+            end
+            if dropship_type == 3 then
+                if troop1 != no_object then
+                    troop1.attach_to(pelican_sprite,0,24,18,relative)
+                    troop1.detach()
+                end
+                if troop2 != no_object then
+                    troop2.attach_to(pelican_sprite,0,-24,18,relative)
+                    troop2.detach()
+                end
+                if troop3 != no_object then
+                    troop3.attach_to(pelican_sprite,8,24,18,relative)
+                    troop3.detach()
+                end
+                if troop4 != no_object then
+                    troop4.attach_to(pelican_sprite,8,-24,18,relative)
+                    troop4.detach()
+                end
+                if troop5 != no_object then
+                    troop5.attach_to(pelican_sprite,16,24,18,relative)
+                    troop5.detach()
+                end
+                if troop6 != no_object then
+                    troop6.attach_to(pelican_sprite,16,-24,18,relative)
+                    troop6.detach()
+                end
+                if troop7 != no_object then
+                    troop7.attach_to(pelican_sprite,24,24,18,relative)
+                    troop7.detach()
+                end
+                if troop8 != no_object then
+                    troop8.attach_to(pelican_sprite,24,-24,18,relative)
+                    troop8.detach()
+                end
+            end
+        end
+        
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Checks if pickup zones have payloads and attaches them
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        for each object with label "pick_up_zone" do
+            if current_object.spawn_sequence == past_pick_up_zone or current_object.spawn_sequence == past_pick_up_zone then
+                current_object.set_shape_visibility(allies)
+                current_object.set_waypoint_visibility(allies)
+                current_object.set_waypoint_icon(arrow)
+            end
+        end
+
+
+        
+
+        if past_pick_up_zone != 0 then
+            for each object with label "pick_up_zone" do
+                current_pick_up_zone = current_object
+                if current_object.spawn_sequence == past_pick_up_zone then
+                    if dropship_payload == no_object then
+                        for each object do
+                            if current_object.team == current_pick_up_zone.team or current_pick_up_zone.team == neutral_team then--
+                                if current_pick_up_zone.shape_contains(current_object) then
+                                    if dropship_type == 1 then
+                                        if current_object.is_of_type(mongoose) and dropship_payload == no_object then
+                                            dropship_payload = current_object
+                                        end
+                                        if current_object.is_of_type(scorpion) then
+                                            dropship_payload = current_object
+                                        end
+                                        if current_object.is_of_type(warthog) and not dropship_payload.is_of_type(scorpion) then
+                                            dropship_payload = current_object
+                                        end
+                                    end
+                                    if dropship_type == 2 then
+                                        if current_object.is_of_type(ghost) and dropship_payload == no_object then --takes last priority
+                                            dropship_payload = current_object
+                                        end
+                                        if current_object.is_of_type(wraith) then --takes priority over all
+                                            dropship_payload = current_object
+                                        end
+                                        if current_object.is_of_type(revenant) and not dropship_payload.is_of_type(wraith) then --takes second priority
+                                            dropship_payload = current_object
+                                        end
+                                    end
+                                    if dropship_type == 3 then
+                                        if current_object.is_of_type(ghost) then --takes last priority
+                                            dropship_payload = current_object
+                                        end
+                                    end
+                                end
+                            end--
+                        end
+                    end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Finds all bipeds in pick up zone and attaches them
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                    for each player do
+                        if current_player.team == current_pick_up_zone.team or current_pick_up_zone.team == neutral_team then--
+                            current_vehicle = current_player.get_vehicle()
+                            if current_vehicle == no_object then
+                                if current_pick_up_zone.shape_contains(current_player.biped) then
+                                    found_spot = 0
+                                    if troop1 == no_object then
+                                        troop1 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop2 == no_object and found_spot == 0 then
+                                        troop2 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop3 == no_object and found_spot == 0 then
+                                        troop3 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop4 == no_object and found_spot == 0 then
+                                        troop4 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop5 == no_object and found_spot == 0 then
+                                        troop5 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop6 == no_object and found_spot == 0 then
+                                        troop6 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop7 == no_object and found_spot == 0 then
+                                        troop7 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                    if troop8 == no_object and found_spot == 0 then
+                                        troop8 = current_player.biped
+                                        found_spot = 1
+                                    end
+                                end
+                            end
+                        end--
+                    end
+                end
+            end
+        end
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Main section of code that doesn't run when finished or is waiting
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        if wait_timer == 0 and finished == 0 then
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--rotate sprite slowly to match way point
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            copy_rotaion_of_slowly_horizontal()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Checks if the dropship reached a way point
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+
+
+            do  
+                past_pick_up_zone = 0
+
+                last_was_stop = 0
+                pelican_distance_option_1 = pelican_obj.get_distance_to(way_point)
+                if pelican_distance_option_1 < 5 then 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Runs code if it has reached the way point
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    past_pick_up_zone = pick_up_zone
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--drops off the players at certain spots depending on dropship type
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    if drop_off_decision != 0 then
+                        if drop_off_decision != 2 then
+                            dropship_payload.set_waypoint_visibility(allies)
+                            dropship_payload.set_waypoint_icon(supply_air_drop)
+                            dropship_payload = no_object
+                        end
+                        if drop_off_decision != 3 then
+                            if dropship_type == 1 then
+                                if troop1 != no_object then
+                                    troop1.attach_to(pelican_sprite,-2,4,0,relative)
+                                    troop1.detach()
+                                    troop1 = no_object
+                                end
+                                if troop2 != no_object then
+                                    troop2.attach_to(pelican_sprite,-2,-4,0,relative)
+                                    troop2.detach()
+                                    troop2 = no_object
+                                end
+                                if troop3 != no_object then
+                                    troop3.attach_to(pelican_sprite,-6,4,0,relative)
+                                    troop3.detach()
+                                    troop3 = no_object
+                                end
+                                if troop4 != no_object then
+                                    troop4.attach_to(pelican_sprite,-6,-4,0,relative)
+                                    troop4.detach()
+                                    troop4 = no_object
+                                end
+                                if troop5 != no_object then
+                                    troop5.attach_to(pelican_sprite,-10,4,0,relative)
+                                    troop5.detach()
+                                    troop5 = no_object
+                                end
+                                if troop6 != no_object then
+                                    troop6.attach_to(pelican_sprite,-10,-4,0,relative)
+                                    troop6.detach()
+                                    troop6 = no_object
+                                end
+                                if troop7 != no_object then
+                                    troop7.attach_to(pelican_sprite,-14,4,0,relative)
+                                    troop7.detach()
+                                    troop7 = no_object
+                                end
+                                if troop8 != no_object then
+                                    troop8.attach_to(pelican_sprite,-14,-4,0,relative)
+                                    troop8.detach()
+                                    troop8 = no_object
+                                end
+                            end
+                            if dropship_type == 2 then
+                                if troop1 != no_object then
+                                    troop1.attach_to(pelican_sprite,0,32,12,relative)
+                                    troop1.detach()
+                                    troop1 = no_object
+                                end
+                                if troop2 != no_object then
+                                    troop2.attach_to(pelican_sprite,0,-32,12,relative)
+                                    troop2.detach()
+                                    troop2 = no_object
+                                end
+                                if troop3 != no_object then
+                                    troop3.attach_to(pelican_sprite,4,32,12,relative)
+                                    troop3.detach()
+                                    troop3 = no_object
+                                end
+                                if troop4 != no_object then
+                                    troop4.attach_to(pelican_sprite,4,-32,12,relative)
+                                    troop4.detach()
+                                    troop4 = no_object
+                                end
+                                if troop5 != no_object then
+                                    troop5.attach_to(pelican_sprite,-4,32,12,relative)
+                                    troop5.detach()
+                                    troop5 = no_object
+                                end
+                                if troop6 != no_object then
+                                    troop6.attach_to(pelican_sprite,-4,-32,12,relative)
+                                    troop6.detach()
+                                    troop6 = no_object
+                                end
+                                if troop7 != no_object then
+                                    troop7.attach_to(pelican_sprite,-8,32,12,relative)
+                                    troop7.detach()
+                                    troop7 = no_object
+                                end
+                                if troop8 != no_object then
+                                    troop8.attach_to(pelican_sprite,-8,-32,12,relative)
+                                    troop8.detach()
+                                    troop8 = no_object
+                                end
+                                
+                            end
+                            if dropship_type == 3 then
+                                if troop1 != no_object then
+                                    troop1.attach_to(pelican_sprite,0,30,18,relative)
+                                    troop1.detach()
+                                    troop1 = no_object
+                                end
+                                if troop2 != no_object then
+                                    troop2.attach_to(pelican_sprite,0,-30,18,relative)
+                                    troop2.detach()
+                                    troop2 = no_object
+                                end
+                                if troop3 != no_object then
+                                    troop3.attach_to(pelican_sprite,8,30,18,relative)
+                                    troop3.detach()
+                                    troop3 = no_object
+                                end
+                                if troop4 != no_object then
+                                    troop4.attach_to(pelican_sprite,8,-30,18,relative)
+                                    troop4.detach()
+                                    troop4 = no_object
+                                end
+                                if troop5 != no_object then
+                                    troop5.attach_to(pelican_sprite,16,30,18,relative)
+                                    troop5.detach()
+                                    troop5 = no_object
+                                end
+                                if troop6 != no_object then
+                                    troop6.attach_to(pelican_sprite,16,-30,18,relative)
+                                    troop6.detach()
+                                    troop6 = no_object
+                                end
+                                if troop7 != no_object then
+                                    troop7.attach_to(pelican_sprite,24,30,18,relative)
+                                    troop7.detach()
+                                    troop7 = no_object
+                                end
+                                if troop8 != no_object then
+                                    troop8.attach_to(pelican_sprite,24,-30,18,relative)
+                                    troop8.detach()
+                                    troop8 = no_object
+                                end
+                            end
+                        end
+                    end
+
+
+                
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--goes to next way point
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    way_point_num += 1
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Switches way_point if specified in way point settings
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    if switch_to != 0 then
+                        way_point_num = switch_to
+                    end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Waits if specified in settings
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    if wait_option == 1 then
+                        last_was_stop = 1
+                        wait_timer = 60
+                        wait_timer *= wait_time
+                    end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--ereases way_point to find next one
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    way_point = no_object
+                    
+                end
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Finds next way point, if it can't then kill dropship
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                if way_point == no_object then
+                    next_stop = no_object
+                    for each object with label "way_point" do
+                        alias dropship_ID = current_object.number[0]
+                        if current_object.spawn_sequence == way_point_num and dropship_ID_self == dropship_ID then
+                            way_point = current_object
+                        end
+                    end
+                    if way_point == no_object then
+                        finished = 1
+                    end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--actions needed to be taken when we reach a stop, face velocity toward next point and set speed to 0
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    if last_was_stop == 1 then
+                        lookat = way_point
+                        FaceExactlyTowards()
+                        speed = 0
+                    end
+                    for each object with label "way_point" do
+                        alias dropship_ID = current_object.number[0]
+                        alias wait_option_current = way_point.number[1]
+                        alias wait_time_current = way_point.number[2]
+                        if dropship_ID_self == dropship_ID then
+                            if wait_option_current == 1 then
+                                if next_stop == no_object then
+                                    next_stop = current_object
+                                    next_stop_number = current_object.spawn_sequence
+                                end
+                                if current_object.spawn_sequence >= way_point_num then
+                                    if current_object.spawn_sequence < next_stop.spawn_sequence then
+                                        next_stop = current_object
+                                        next_stop_number = current_object.spawn_sequence
+                                    end
+                                end
+                            end
+                        end
+                        
+                    end
+                end
+            end
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Controls speed by averaging steps over 1/6 a second
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+            do
+                if speed_cycle == 10 then
+                    speed_cycle = 1
+                    cycle_steps = 0
+                end
+                do
+                    current_rate = cycle_steps
+                    current_rate *= 1000
+                    current_rate /= speed_cycle
+                    if current_rate <= speed then
+                        cycle_steps += 1
+                        go_to()
+                    end
+                    speed_cycle += 1
+                end
+            end
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--controls deceleration
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            if next_stop != no_object then
+                distance_current = pelican_obj.get_distance_to(next_stop)  --find distance
+                if distance_current < 3000 then --we need to scale the distance by 10 for accuracy but we need to also ensure
+                                            --that the distance * 10 is an overflow
+                                            --speed decrease logic
+                    if speed != 1 then
+                --scince speed is reperesented in forgeUnits/100 per tick and distance is forgeUnits/10 per tick, 
+                                                    --we need to multiply the distance by 10 to match
+                        distance_deccel = speed --steps per 1000 ticks
+                        distance_deccel *= distance_deccel
+                        distance_deccel /= 2
+                        distance_deccel /= 10000 --steps per 1000 ticks per 1000 ticks (100x for resolution perposes) (10000 is the acceleration)
+                        distance_deccel *= 200  --trying 120 perent to see if that works
+                        distance_deccel /= 100
+                        if distance_current <= distance_deccel then  --sees if we need to slow down
+                            if not speed < 110 then
+                                speed -= 10 --slows down by 1/100 forge unit per tick
+                            end
+                        end
+                        if not speed > 990 then
+                            if distance_current > distance_deccel then  --sees if we need to slow down
+                                speed += 10 --slows down by 1/100 forge unit per tick
+                            end
+                        end
+                    end
+                    --===============================--
+                end
+            end
+            if next_stop == no_object then
+                if not speed > 990 then
+                    speed += 10 --slows down by 1/100 forge unit per tick
+                end
+            end
+        end
+    end
+end
+
+
+
+
+
+
+
+
+--====================================================================================================================================================================
+--Goes through every dropship and calls update_dropship
+--==================================================================================================================================================================== 
+function update_all_dropships()
+    for each object with label "pick_up_zone" do
+        current_object.set_shape_visibility(no_one)
+        current_object.set_waypoint_visibility(no_one)
+    end
+    for each object with label "drop_ship" do
+        if current_object.spawn_sequence == 1 then 
+            alias dropship_ID = current_object.number[0]
+            dropship_number = dropship_ID
+            update_dropship()
+        end
+    end
+end
+
+
+--====================================================================================================================================================================
+--Run once at the beginning of the round to assign setting variables to each object
+--==================================================================================================================================================================== 
+function initialize_dropships()
+    for each object with label "drop_ship" do
+        current_drop_ship = current_object
+        alias dropship_ID = current_drop_ship.number[0]
+        if current_drop_ship.team == team[0] then
+            dropship_ID = 1
+        end
+        if current_drop_ship.team == team[1] then
+            dropship_ID = 2
+        end
+        if current_drop_ship.team == team[2] then
+            dropship_ID = 3
+        end
+        if current_drop_ship.team == team[3] then
+            dropship_ID = 4
+        end
+        if current_drop_ship.spawn_sequence == 1 then
+            alias dropship_type = current_drop_ship.number[7]
+            dropship_type = 1
+            for each object with label "setting" do
+                if current_drop_ship.shape_contains(current_object) then
+                    dropship_type = current_object.spawn_sequence
+                end
+            end
+        end
+    end
+    for each object with label "way_point" do 
+        current_way_point = current_object
+        alias dropship_ID = current_way_point.number[0]
+        alias wait_option = current_way_point.number[1]
+        alias wait_time = current_way_point.number[2]
+        alias switch_to = current_way_point.number[3]
+        alias pick_up_zone = current_way_point.number[4]
+        alias drop_off_decision = current_way_point.number[5]
+        if current_way_point.team == team[0] then
+            dropship_ID = 1
+        end
+        if current_way_point.team == team[1] then
+            dropship_ID = 2
+        end
+        if current_way_point.team == team[2] then
+            dropship_ID = 3
+        end
+        if current_way_point.team == team[3] then
+            dropship_ID = 4
+        end
+        for each object with label "setting" do
+            if current_way_point.shape_contains(current_object) then
+                if current_object.team == team[0] then
+                    wait_option = 1
+                    wait_time = current_object.spawn_sequence
+                end
+                if current_object.team == team[1] then
+                    switch_to = current_object.spawn_sequence
+                end
+                if current_object.team == team[2] then
+                    drop_off_decision = current_object.spawn_sequence
+                    drop_off_decision += 1
+                end
+                if current_object.team == team[3] then
+                    pick_up_zone = current_object.spawn_sequence
+                end
+            end
+        end
+    end
+end
+
+
+
+
+--====================================================================================================================================================================
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+---------------------------------------------------------------------Running the code---------------------------------------------------------------------------------
+--\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+--====================================================================================================================================================================
+
+update_all_dropships()
+
+on init: do
+    initialize_dropships()
+end

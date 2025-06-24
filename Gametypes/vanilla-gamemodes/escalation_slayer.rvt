@@ -1,0 +1,640 @@
+
+--
+-- ESCALATION SLAYER: An official gametype added to Halo: Reach by 343 Industries
+--
+-- Instead of spawning with user-specified weapons, players are given weapons based 
+-- on their current score. When a player kills a foe, their personap Weapon Swap 
+-- Timer starts counting down; when it reaches zero, the player's current weapon 
+-- will be deleted and they will be given a new weapon. Weapons are sorted into 
+-- "tiers," and if a player scores a kill with the weapon in the final tier, the 
+-- round ends early.
+--
+-- An optional "catch-up timer" can be enabled, which will cause a player to advance 
+-- to the next tier automatically if they go too long without scoring a kill. This 
+-- also gives the player some points, since weapon tiers are linked to score.
+--
+-- Assassination and grenade-stick kills can optionally downgrade the victim's tier 
+-- and reduce their score.
+--
+--
+-- NOTES
+--
+-- The default settings spawn players without a secondary weapon and disable 
+-- weapon pickup.
+--
+-- The gametype will delete whichever weapon the player has in their hands at the 
+-- time that a weapon swap occurs. This means that when they spawn, their primary 
+-- weapon will be replaced, but their secondary weapon will not. If they have two 
+-- weapons at the time a weapon swap occurs, the one in their hands is the one 
+-- that will be swapped. If, hypothetically, a player were allowed to spawn with 
+-- a secondary weapon, then upon earning a weapon swap, they would be able to 
+-- decide whether to lose that weapon or their scripted weapon.
+--
+-- Default settings prevent players from dealing damage while on cooldown -- that 
+-- is, after they've earned a weapon swap but before the swap actually happens. 
+-- Perhaps this is to ensure that explosive or other power weapons don't allow a 
+-- player to easily skip tiers?
+-- 
+
+enum weapon_suite
+   unsc
+   covy
+   mix
+end
+
+alias final_weapon_unsc = golf_club
+alias final_weapon_covy = energy_sword
+alias final_weapon_mix  = golf_club
+
+alias final_weapon_damage_type_unsc = enums.damage_reporting_type.gravity_hammer
+alias final_weapon_damage_type_covy = enums.damage_reporting_type.energy_sword
+alias final_weapon_damage_type_mix  = enums.damage_reporting_type.gravity_hammer
+
+enum special_kill_action -- action to take when a special kill happens
+   both
+   punish_victim -- victim is downgraded to a weaker weapon
+   reward_killer -- killer is upgraded to a stronger weapon
+end
+
+alias opt_super_shields          = script_option[0]
+alias opt_weapon_suite           = script_option[1]
+alias opt_weapon_swap_time       = script_option[2] -- how long it takes to swap to a new weapon after earning it
+alias opt_points_per_weapon      = script_option[3] -- points needed to progress to the next weapon
+alias opt_assassination_behavior = script_option[4] -- values are special_kill_action, above
+alias opt_grenade_stick_behavior = script_option[5] -- values are special_kill_action, above
+alias opt_catch_up_timer         = script_option[6] -- how long it takes until a player is auto-upgraded
+alias opt_headshot_bonus         = script_option[7] -- scoring
+
+alias leader_traits       = script_traits[0]
+alias cooldown_traits     = script_traits[1] -- applied while a player's weapon is being swapped
+alias final_weapon_traits = script_traits[2] -- applied while a player is at the final weapon tier
+
+alias ui_catch_up_time = script_widget[0]
+alias ui_current_tier  = script_widget[1]
+
+-- Forge labels:
+alias all_fire_particles = 2
+
+alias announced_game_start = player.number[1]
+alias announce_start_timer = player.timer[0]
+
+alias max_weapon_tier   = global.number[0] -- tiers are numbered from zero
+alias temp_int_00       = global.number[1]
+alias temp_int_01       = global.number[2]
+alias temp_int_02       = global.number[3]
+alias temp_int_03       = global.number[4]
+alias temp_int_04       = global.number[5]
+alias temp_int_05       = global.number[6]
+alias temp_int_06       = global.number[7]
+alias temp_int_07       = global.number[8]
+alias temp_obj_00       = global.object[0]
+alias temp_plr_00       = global.player[0]
+alias temp_plr_01       = global.player[1]
+alias loadout_cam_timer = global.timer[0]  -- used to delay HUD widget visibility until the loadout camera is over
+alias is_leader         = player.number[0]
+alias weapon_progress   = player.number[2] -- points toward the next weapon; by definition equal to (score % points per weapon)
+alias current_tier      = player.number[3] -- tiers are numbered from zero
+alias needs_new_weapon  = player.number[4] -- player died and needs to be given a scripted weapon when they respawn
+alias is_on_cooldown    = player.number[5]
+alias weapon_swap_timer = player.timer[1]
+alias catch_up_timer    = player.timer[2]
+alias lifespan          = object.timer[0] -- for super shields particles
+
+declare max_weapon_tier with network priority low
+declare temp_int_00     with network priority local -- temporary
+declare temp_int_01     with network priority local -- temporary
+declare temp_int_02     with network priority local -- temporary
+declare temp_int_03     with network priority local -- temporary
+declare temp_int_04     with network priority local -- temporary
+declare temp_int_05     with network priority local -- temporary
+declare temp_int_06     with network priority local -- temporary
+declare temp_int_07     with network priority local -- temporary
+declare temp_obj_00     with network priority local -- temporary
+declare temp_plr_00     with network priority local -- temporary
+declare temp_plr_01     with network priority local -- temporary
+declare loadout_cam_timer = game.loadout_cam_time
+declare player.is_leader            with network priority local
+declare player.announced_game_start with network priority low
+declare player.weapon_progress      with network priority low
+declare player.current_tier         with network priority low
+declare player.needs_new_weapon     with network priority low = 1
+declare player.is_on_cooldown       with network priority low
+declare player.announce_start_timer = 5
+declare player.weapon_swap_timer    = opt_weapon_swap_time
+declare player.catch_up_timer       = opt_catch_up_timer
+declare object.lifespan = 1
+
+if game.teams_enabled == 1 then -- enforce FFA-only label
+   for each object with label "ffa_only" do
+      current_object.delete()
+   end
+end
+
+if game.teams_enabled == 0 then -- enforce team-only label
+   for each object with label "team_only" do
+      current_object.delete()
+   end
+end
+
+for each player do -- loadout palettes
+   if current_player.is_elite() then
+      current_player.set_loadout_palette(elite_tier_1)
+   end
+   if not current_player.is_elite() then
+      current_player.set_loadout_palette(spartan_tier_1)
+   end
+end
+
+on init: do
+   loadout_cam_timer.reset()
+end
+
+for each player do -- round card, UI, and max weapon tier var
+   current_player.announce_start_timer.set_rate(-100%)
+   loadout_cam_timer.set_rate(-100%)
+   if game.teams_enabled == 1 then
+      current_player.set_round_card_title("Earn %n point(s) with each weapon to\nprogress to the next. The first team to\nprogress through all weapons wins!", opt_points_per_weapon)
+   end
+   if game.teams_enabled == 0 then
+      current_player.set_round_card_title("Earn %n point(s) with each weapon to\nprogress to the next. The first player to\nprogress through all weapons wins!", opt_points_per_weapon)
+   end
+   ui_catch_up_time.set_visibility(current_player, false)
+   ui_current_tier.set_visibility(current_player, false)
+   if opt_catch_up_timer != -1 then
+      ui_catch_up_time.set_text("New Weapon In %s", hud_player.catch_up_timer)
+      ui_catch_up_time.set_visibility(current_player, true)
+   end
+   max_weapon_tier = 8
+   if opt_weapon_suite == weapon_suite.mix then
+      max_weapon_tier = 16
+   end
+   ui_current_tier.set_text("Weapon %n / %n", hud_player.current_tier, max_weapon_tier)
+   ui_current_tier.set_visibility(current_player, true)
+   if current_player.announced_game_start == 0 and current_player.announce_start_timer.is_zero() then
+      send_incident(action_sack_game_start, current_player, no_player)
+      current_player.announced_game_start = 1
+   end
+end
+
+for each player do -- manage catch-up timer rate and widget visibility
+   if  opt_catch_up_timer != -1
+   and current_player.announced_game_start == 1
+   and loadout_cam_timer.is_zero()
+   and current_player.current_tier != max_weapon_tier
+   then
+      current_player.catch_up_timer.set_rate(-100%)
+      ui_catch_up_time.set_visibility(current_player, true)
+   end
+end
+for each player do -- stop catch-up timer and hide widget when player is at the max weapon tier
+   if  opt_catch_up_timer != -1
+   and current_player.current_tier == max_weapon_tier then
+      current_player.catch_up_timer.set_rate(0%)
+      ui_catch_up_time.set_visibility(current_player, false)
+   end
+end
+
+if game.round_time_limit > 0 and game.round_timer.is_zero() then -- round timer
+   game.end_round()
+end
+
+for each player do -- identify leader players
+   alias scoreboard_pos = temp_int_00
+   --
+   scoreboard_pos = 0
+   current_player.is_leader = 0
+   if game.teams_enabled == 1 then
+      scoreboard_pos = current_player.team.get_scoreboard_pos()
+   end
+   if game.teams_enabled == 0 then
+      scoreboard_pos = current_player.get_scoreboard_pos()
+   end
+   if scoreboard_pos == 1 and current_player.score != 0 then
+      current_player.is_leader = 1
+   end
+end
+for each player do -- apply leader traits
+   if current_player.is_leader == 1 then
+      current_player.apply_traits(leader_traits)
+   end
+end
+
+for each player do -- handle super shields VFX
+   if opt_super_shields == 1 then
+      alias current_shields = temp_int_00
+      --
+      current_shields = 0
+      current_shields = current_player.biped.shields
+      if current_shields > 100 then
+         temp_int_01 = 0
+         temp_int_01 = rand(10)
+         if temp_int_01 <= 2 then -- 30% chance to spawn a particle emitter
+            current_player.biped.place_at_me(particle_emitter_fire, none, never_garbage_collect, 0, 0, 0, none)
+         end
+      end
+   end
+end
+for each object with label all_fire_particles do -- clean up super shields VFX
+   current_object.lifespan.set_rate(-100%)
+   if current_object.lifespan.is_zero() then
+      current_object.delete()
+   end
+end
+
+for each player do -- maintain player's current weapon tier as (score / points per weapon)
+   temp_int_00  = current_player.score
+   temp_int_00 /= opt_points_per_weapon
+   current_player.current_tier = temp_int_00
+end
+
+for each player do -- if a player dies for any reason, they'll need the script to give them a new weapon when they respawn
+   if current_player.killer_type_is(guardians | suicide | kill | betrayal | quit) then
+      current_player.needs_new_weapon = 1
+   end
+end
+
+for each player do
+   alias is_assassination = temp_int_00
+   alias is_grenade_stick = temp_int_01
+   alias is_headshot_kill = temp_int_02
+   alias victim = temp_plr_00
+   alias killer = temp_plr_01
+   --
+   if current_player.killer_type_is(kill) then
+      victim = current_player
+      is_assassination = 0
+      is_grenade_stick = 0
+      is_headshot_kill = 0
+      do
+         temp_int_03 = victim.get_death_damage_mod()
+         if temp_int_03 == enums.damage_reporting_modifier.assassination then
+            is_assassination = 1
+         end
+         if temp_int_03 == enums.damage_reporting_modifier.sticky then
+            is_grenade_stick = 1
+         end
+         if temp_int_03 == enums.damage_reporting_modifier.headshot then
+            is_headshot_kill = 1
+         end
+      end
+      --
+      alias is_gun_kill = temp_int_03
+      --
+      is_gun_kill = 1
+      do
+         alias damage_type = temp_int_04
+         --
+         damage_type = victim.get_death_damage_type()
+         if damage_type == enums.damage_reporting_type.unknown
+         or damage_type == enums.damage_reporting_type.guardians
+         or damage_type == enums.damage_reporting_type.frag_grenade
+         or damage_type == enums.damage_reporting_type.plasma_grenade
+         or damage_type == enums.damage_reporting_type.fall damage
+         or damage_type == enums.damage_reporting_type.collision damage
+         or damage_type == enums.damage_reporting_type.melee_generic
+         or damage_type == enums.damage_reporting_type.explosion_generic
+         then -- this notably does not exclude vehicles
+            is_gun_kill = 0
+         end
+      end
+      --
+      -- Okay, we now know everything we need to know about the kill itself, in order 
+      -- to decide how we want to treat the victim and their killer. Now, let's go 
+      -- and handle those two players the way we want to.
+      --
+      killer = victim.get_killer()
+      do
+         alias should_reward_killer = temp_int_04
+         --
+         should_reward_killer = 0
+         if is_gun_kill == 1 then
+            should_reward_killer = 1 -- always reward a player for killing a foe with their gun
+         end
+         if is_assassination == 1 and opt_assassination_behavior != special_kill_action.punish_victim then
+            should_reward_killer = 1
+         end
+         if is_grenade_stick == 1 and opt_grenade_stick_behavior != special_kill_action.punish_victim then
+            should_reward_killer = 1
+         end
+         if should_reward_killer == 1 then
+            alias score_increase = temp_int_05
+            --
+            score_increase = 1
+            if is_headshot_kill == 1 then
+               alias killer_weapon_progress = temp_int_06
+               alias capped_score_increase  = temp_int_07
+               --
+               -- Apply the Headshot Bonus, if any, but do not allow the killer to 
+               -- advance by more than one weapon tier at a time. Moreover, if the 
+               -- killer *does* advance to the next weapon tier, cap them at the 
+               -- very start of that weapon tier.
+               --
+               -- As an example, consider the following settings:
+               --
+               --    Points Per Weapon: 5
+               --    Headshot Bonus:    2
+               --
+               -- If a player has 9 points and scores a headshot kill, then a naive 
+               -- score increase would place them at 11. The logic here, however, 
+               -- will cap them at 10. If they had 8 points instead, they'd still 
+               -- end up at 10.
+               --
+               -- Consider instead these settings:
+               --
+               --    Points Per Weapon:  5
+               --    Headshot Bonus:    10
+               --
+               -- If a player has 9 points and scores a headshot kill, then a naive 
+               -- score increase would place them at 20, advancing them by three 
+               -- tiers. However, the score increase will first be capped to 5, and 
+               -- then be further reduced by 4, since they are four points toward 
+               -- their next weapon (9 % 5 == 4). The final increase will be one 
+               -- single point, which is exactly enough to move the player up by 
+               -- one tier only.
+               --
+               killer_weapon_progress  = killer.score
+               killer_weapon_progress %= opt_points_per_weapon -- not sure why we compute this from scratch instead of using killer.weapon_progress...
+               capped_score_increase   = opt_headshot_bonus
+               capped_score_increase  += score_increase
+               if capped_score_increase > opt_points_per_weapon then
+                  capped_score_increase = opt_points_per_weapon
+               end
+               capped_score_increase -= killer_weapon_progress
+               --
+               score_increase = capped_score_increase
+            end
+            killer.score           += score_increase
+            killer.weapon_progress += score_increase
+            if killer.weapon_progress == opt_points_per_weapon then
+               killer.weapon_swap_timer.set_rate(-100%)
+               killer.is_on_cooldown  = 1
+               killer.weapon_progress = 0
+               if opt_catch_up_timer != -1 then
+                  killer.catch_up_timer.reset()
+               end
+            end
+         end
+      end
+      if victim.score >= opt_points_per_weapon then -- if the player is on Tier 2 or above
+         alias should_punish_victim = temp_int_04
+         --
+         should_punish_victim = 0
+         if is_assassination == 1 and opt_assassination_behavior != special_kill_action.reward_killer then
+            should_punish_victim = 1
+         end
+         if is_grenade_stick == 1 and opt_grenade_stick_behavior != special_kill_action.reward_killer then
+            should_punish_victim = 1
+         end
+         if should_punish_victim == 1 then
+            alias score_reduction = temp_int_05
+            alias negative_check  = temp_int_06
+            --
+            score_reduction  = opt_points_per_weapon
+            score_reduction += victim.weapon_progress
+            negative_check   = victim.score
+            negative_check  -= score_reduction
+            if negative_check < 0 then
+               --
+               -- The player's score plus the score reduction is negative, and we 
+               -- want to prevent that; we don't want to punish the player below 
+               -- zero. However, this check doesn't seem to be correct, and it 
+               -- seems like it'd be redundant if it *were* correct.
+               --
+               -- Suppose my score is 8, the points per weapon is 5, and I get 
+               -- assassinated and punished. We'd end up with these variables:
+               --
+               --    opt_points_per_weapon  == 5
+               --    victim.weapon_progress == 0
+               --    victim.score           == 3
+               --    score_reduction        == 5 + 0 == 5
+               --    negative_check         == -2
+               --
+               -- This code subtracts (negative_check) from (score_reduction). 
+               -- Subtracting -2 from 5 is the same as adding 2 to 5, so we're 
+               -- actually removing even *more* points and sending me further 
+               -- below zero. The correct behavior would be to *add* the check 
+               -- value to the reduction value.
+               --
+               -- ...Or so it seems. The correct behavior would actually be to 
+               -- not even have this check at all, because a bit further above, 
+               -- we already double-checked that the victim has at least as 
+               -- many points as the points-per-weapon. We checked that because 
+               -- we can't push the player any further back than Tier 0, and 
+               -- perhaps we don't want to reset a player's progress from Tier 
+               -- 0 to Tier 1. Refusing to penalize a player who's still on 
+               -- Tier 0 conveniently also prevents the only situation in which 
+               -- we risk pushing their score below 0.
+               --
+               score_reduction -= negative_check
+            end
+            victim.score -= score_reduction
+            victim.weapon_progress = 0
+            game.show_message_to(victim, boneyard_generator_power_down, "%p downgraded you to the previous weapon!", killer)
+            if opt_catch_up_timer != -1 then
+               victim.catch_up_timer.reset()
+            end
+         end
+      end
+   end
+end
+
+for each player do -- perform catch-up weapon swap
+   if opt_catch_up_timer != -1 and current_player.catch_up_timer.is_zero() then
+      current_player.catch_up_timer.reset()
+      temp_int_00  = opt_points_per_weapon
+      temp_int_00 -= current_player.weapon_progress
+      current_player.weapon_progress = 0
+      current_player.score += temp_int_00 -- advance the player's score to the next multiple of the points per weapon
+      current_player.weapon_swap_timer.set_rate(-100%)
+      current_player.is_on_cooldown = 1
+   end
+end
+
+for each player do -- apply cooldown traits (tracking cooldown state is done elsewhere)
+   if current_player.is_on_cooldown == 1 then
+      current_player.apply_traits(cooldown_traits)
+   end
+end
+
+for each player do -- apply final weapon traits
+   if current_player.current_tier == max_weapon_tier then
+      current_player.apply_traits(final_weapon_traits)
+   end
+end
+
+for each player do -- queue the round to end if any player scores a kill with a weapon in the final tier
+   alias victim = temp_plr_00
+   alias killer = temp_plr_01 -- boilerplate; not used in this block
+   alias is_final_tier_kill = temp_int_00
+   --
+   victim = current_player
+   if victim.killer_type_is(kill) then
+      is_final_tier_kill = 0
+      temp_int_01 = victim.get_death_damage_type()
+      if opt_weapon_suite == weapon_suite.unsc and temp_int_01 == final_weapon_damage_type_unsc then
+         is_final_tier_kill = 1
+      end
+      if opt_weapon_suite == weapon_suite.covy and temp_int_01 == final_weapon_damage_type_covy then
+         is_final_tier_kill = 1
+      end
+      if opt_weapon_suite == weapon_suite.mix  and temp_int_01 == final_weapon_damage_type_mix  then
+         is_final_tier_kill = 1
+      end
+      if is_final_tier_kill == 1 then
+         killer = victim.get_killer()
+         game.end_round()
+      end
+   end
+end
+
+for each player do -- execute weapon swap when appropriate, including for newly-spawned players
+   alias should_do_weapon_swap = temp_int_00
+   alias suppress_announcement = temp_int_01 -- if non-zero, we do not announce if this player hits the final tier
+   --
+   should_do_weapon_swap = 0
+   suppress_announcement = 0
+   if current_player.weapon_swap_timer.is_zero() then -- player has earned a new weapon?
+      should_do_weapon_swap = 1
+      current_player.weapon_swap_timer.reset()
+      current_player.weapon_swap_timer.set_rate(0%)
+      current_player.is_on_cooldown = 0
+   end
+   if current_player.needs_new_weapon == 1 then -- player died and needs a new weapon when they next respawn?
+      temp_obj_00 = current_player.biped
+      if temp_obj_00 != no_object then
+         should_do_weapon_swap = 1
+         suppress_announcement = 1
+         current_player.needs_new_weapon = 0
+      end
+   end
+   if should_do_weapon_swap == 1 then
+      alias prior_weapon = temp_obj_00
+      --
+      prior_weapon = current_player.get_weapon(primary)
+      if prior_weapon != no_object then
+         prior_weapon.set_pickup_permissions(mod_player, current_player, 0) -- don't let the player pick the weapon back up. some kind of failsafe, i assume
+         current_player.biped.remove_weapon(primary, false)
+         prior_weapon.delete()
+         if opt_weapon_suite == weapon_suite.unsc then
+            if current_player.current_tier == 0 then
+               current_player.biped.add_weapon(assault_rifle, force)
+            end
+            if current_player.current_tier == 1 then
+               current_player.biped.add_weapon(dmr, force)
+            end
+            if current_player.current_tier == 2 then
+               current_player.biped.add_weapon(shotgun, force)
+            end
+            if current_player.current_tier == 3 then
+               current_player.biped.add_weapon(grenade_launcher, force)
+            end
+            if current_player.current_tier == 4 then
+               current_player.biped.add_weapon(sniper_rifle, force)
+            end
+            if current_player.current_tier == 5 then
+               current_player.biped.add_weapon(rocket_launcher, force)
+            end
+            if current_player.current_tier == 6 then
+               current_player.biped.add_weapon(spartan_laser, force)
+            end
+            if current_player.current_tier == 7 then
+               current_player.biped.add_weapon(magnum, force)
+            end
+            if current_player.current_tier == 8 then
+               current_player.biped.add_weapon(golf_club, force)
+               if suppress_announcement == 0 then
+                  game.show_message_to(all_players, announce_sudden_death, "%p is at the final weapon tier!", current_player)
+               end
+            end
+         end
+         if opt_weapon_suite == weapon_suite.covy then
+            if current_player.current_tier == 0 then
+               current_player.biped.add_weapon(plasma_repeater, force)
+            end
+            if current_player.current_tier == 1 then
+               current_player.biped.add_weapon(needle_rifle, force)
+            end
+            if current_player.current_tier == 2 then
+               current_player.biped.add_weapon(needler, force)
+            end
+            if current_player.current_tier == 3 then
+               current_player.biped.add_weapon(concussion_rifle, force)
+            end
+            if current_player.current_tier == 4 then
+               current_player.biped.add_weapon(focus_rifle, force)
+            end
+            if current_player.current_tier == 5 then
+               current_player.biped.add_weapon(fuel_rod_gun, force)
+            end
+            if current_player.current_tier == 6 then
+               current_player.biped.add_weapon(plasma_launcher, force)
+            end
+            if current_player.current_tier == 7 then
+               current_player.biped.add_weapon(plasma_rifle, force)
+            end
+            if current_player.current_tier == 8 then
+               current_player.biped.add_weapon(energy_sword, force)
+               if suppress_announcement == 0 then
+                  game.show_message_to(all_players, announce_sudden_death, "%p is at the final weapon tier!", current_player)
+               end
+            end
+         end
+         if opt_weapon_suite == weapon_suite.mix then
+            if current_player.current_tier == 0 then
+               current_player.biped.add_weapon(assault_rifle, force)
+            end
+            if current_player.current_tier == 1 then
+               current_player.biped.add_weapon(plasma_repeater, force)
+            end
+            if current_player.current_tier == 2 then
+               current_player.biped.add_weapon(needler, force)
+            end
+            if current_player.current_tier == 3 then
+               current_player.biped.add_weapon(dmr, force)
+            end
+            if current_player.current_tier == 4 then
+               current_player.biped.add_weapon(needle_rifle, force)
+            end
+            if current_player.current_tier == 5 then
+               current_player.biped.add_weapon(shotgun, force)
+            end
+            if current_player.current_tier == 6 then
+               current_player.biped.add_weapon(grenade_launcher, force)
+            end
+            if current_player.current_tier == 7 then
+               current_player.biped.add_weapon(concussion_rifle, force)
+            end
+            if current_player.current_tier == 8 then
+               current_player.biped.add_weapon(sniper_rifle, force)
+            end
+            if current_player.current_tier == 9 then
+               current_player.biped.add_weapon(focus_rifle, force)
+            end
+            if current_player.current_tier == 10 then
+               current_player.biped.add_weapon(rocket_launcher, force)
+            end
+            if current_player.current_tier == 11 then
+               current_player.biped.add_weapon(fuel_rod_gun, force)
+            end
+            if current_player.current_tier == 12 then
+               current_player.biped.add_weapon(spartan_laser, force)
+            end
+            if current_player.current_tier == 13 then
+               current_player.biped.add_weapon(plasma_launcher, force)
+            end
+            if current_player.current_tier == 14 then
+               current_player.biped.add_weapon(magnum, force)
+            end
+            if current_player.current_tier == 15 then
+               current_player.biped.add_weapon(plasma_rifle, force)
+            end
+            if current_player.current_tier == 16 then
+               current_player.biped.add_weapon(golf_club, force)
+               if suppress_announcement == 0 then
+                  game.show_message_to(all_players, announce_sudden_death, "%p is at the final weapon tier!", current_player)
+               end
+            end
+         end
+      end
+   end
+end

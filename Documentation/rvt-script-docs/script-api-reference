@@ -1,0 +1,2932 @@
+
+Content not in any namespace
+
+Contains various utility functions.
+Members
+
+current_object
+
+    The current object in a for each object or for each object with label loop.
+current_player
+
+    The current player in a for each player or for each player randomly loop.
+current_team
+
+    The current team in a for each team loop.
+death_event_damage_type
+
+    During an object death event, this is the damage type that killed the object. It is presumed to be a damage reporting type; testing is pending.
+hud_target_object
+
+    This value can be used with object waypoint text to display values related to the object that has the waypoint.
+hud_target_player
+
+    This value's precise meaning is unknown, but it can presumably be used with HUD widgets and object waypoints to display different information for each player.
+killed_object
+
+    During an object death event, this is the killed object.
+killer_object
+
+    During an object death event, this is the killer object.
+killer_player
+
+    During an object death event, this is the killer player.
+local_player
+
+    This value can be used with HUD widgets and object waypoints to display different information for each player. It refers to the player that the widget or waypoint is being shown to.
+local_team
+
+    This is the team to which the local player belongs. This value can be passed to HUD widgets as part of a format string to display information about the team. 
+neutral_team
+
+    A value that can be used to refer to Neutral Team.
+no_object
+
+    A value which represents "none," usable where an object variable can appear.
+no_player
+
+    A value which represents "none," usable where an player variable can appear.
+no_team
+
+    A value which represents "none," usable where a team variable can appear. It is not the same as neutral_team.
+no_widget
+
+    A value which represents "none," usable where a HUD widget can appear.
+player[n]
+
+    Allows direct access to all sixteen possible active players in a match.
+script_option[n]
+
+    Allows scripts to access the value of scripted Custom Game options.
+script_traits[n]
+
+    One of the sixteen sets of player traits available to scripts.
+script_widget[n]
+
+    One of the four HUD widgets available to scripts.
+target_team
+
+    If there is a hud_target_player, then this is the team that that player is on. Otherwise, it's the team of the target object. This value can be passed to HUD widgets as part of a format string to display information about the team. 
+team[n]
+
+    Allows direct access to all eight possible teams in a match.
+
+Member actions
+
+debug_break a.k.a. break_into_debugger
+
+    A non-functional debugging tool. In Halo: Reach's debug builds, this probably broke into a debugger.
+debug_force_player_view_count
+
+    A non-functional debugging tool.
+debug_print
+
+    A non-functional debugging tool. In Halo: Reach's debug builds, this probably writes a message to some log file.
+debug_set_tracing_enabled a.k.a. debugging_enable_tracing
+
+    A non-functional debugging tool. In Halo: Reach's debug builds, this probably set whether tracing was enabled.
+get_random_object
+
+    Get a random object on the map with the specified Forge label.
+insert_theater_film_marker a.k.a. saved_film_insert_marker
+
+    Unknown.
+rand
+
+    Generates a random number.
+send_incident
+
+    Send an incident.
+send_incident (with integer)
+
+    Send an incident.
+set_scenario_interpolator_state
+
+    Set the state value for a map-defined "scenario interpolator."
+
+
+enums
+
+Contains predefined enums.
+Members
+
+damage_reporting_modifier
+
+    An enum containing values that can be returned by player.get_death_damage_mod.
+damage_reporting_type
+
+    An enum containing values that can be returned by player.get_death_damage_type.
+orientation
+
+    An enum containing values that can be returned by object.get_orientation.
+
+
+game
+
+Contains game state values and functions for managing game state.
+Members
+
+betrayal_booting
+
+    Whether Betrayal Booting is enabled.
+betrayal_penalty
+
+    The betrayal penalty time for respawning players, in seconds.
+current_round
+
+    The current round number.
+dead_players_can_talk
+
+    Whether dead players can talk.
+dont_team_restrict_chat
+
+    Whether chat is team-restricted.
+fireteams_enabled
+
+    Whether fireteams are enabled.
+friendly_fire
+
+    Whether Friendly Fire is enabled.
+grace_period_time
+
+    The amount of Grace Period time.
+grace_period_timer
+
+    The current round's remaining Grace Period time.
+grenades_enabled
+
+    Whether Grenades on Map is enabled or not.
+indestructible_vehicles
+
+    Whether Indestructible Vehicles are enabled or not.
+lives_per_round
+
+    The number of lives each player has per round, as set in the Custom Game options.
+loadout_cam_time
+
+    The Initial Loadout Camera duration.
+perfection_enabled
+
+    Indicates whether it is possible to earn a Perfection Medal in this game variant.
+powerup_duration_blue
+
+    The duration of the Blue Powerup (active camo), in seconds.
+powerup_duration_red
+
+    The duration of the Red Powerup (overshields), in seconds.
+powerup_duration_yellow
+
+    The duration of the Yellow Powerup (custom), in seconds.
+proximity_voice
+
+    Whether Proximity Voice is enabled.
+respawn_growth
+
+    The base respawn growth time for all players, in seconds.
+respawn_time
+
+    The base respawn time for all players, in seconds.
+respawn_traits_time
+
+    The number of seconds a player has Respawn Traits for.
+round_limit
+
+    The number of rounds.
+round_time_limit
+
+    The round time limit.
+round_timer
+
+    The current round's remaining time.
+rounds_to_win
+
+    The number of rounds that a player or team must win in order to win the match.
+score_to_win
+
+    The score to win.
+sudden_death_time
+
+    The amount of Sudden Death time.
+sudden_death_timer
+
+    The current round's remaining Sudden Death time.
+suicide_penalty
+
+    The suicide penalty time for respawning players, in seconds.
+symmetry
+
+    Whether this match is symmetric.
+symmetry_get
+
+    Whether this match is symmetric.
+team_lives_per_round
+
+    The number of lives each team has per round, as set in the Custom Game options.
+teams_enabled
+
+    Whether teams are enabled.
+
+Member actions
+
+end_round
+
+    Ends the round.
+hs_function_call
+
+    MCC-exclusive: Call HaloScript functions made available by the current map; intended for mods that rely on map-and-Megalo pairs.
+play_sound_for
+
+    Play a sound.
+show_message_to a.k.a. hud_post_message
+
+    Display a message in the kill feed.
+
+
+global
+
+Contains global variables.
+Members
+
+number[n]
+
+    Globally scoped numbers. Twelve are available, numbered from 0 to 11.
+object[n]
+
+    Globally scoped objects. Sixteen are available, numbered from 0 to 15.
+player[n]
+
+    Globally scoped players. Eight are available, numbered from 0 to 7.
+team[n]
+
+    Globally scoped teams. Eight are available, numbered from 0 to 7.
+timer[n]
+
+    Globally scoped timers. Eight are available, numbered from 0 to 7.
+
+
+temporaries
+
+The temporaries namespace contains temporary variables, a feature backported from Halo 4 to the Halo: The Master Chief Collection version of Halo: Reach. Gametypes that use these variables are incompatible with the original Xbox 360 version of Halo: Reach, and with MCC versions that predate the mid-July 2023 update.
+
+You should not refer to temporary variables directly (e.g. temporaries.number[n]); this namespace is provided for use by ReachVariantTool's decompiler. You are encouraged to instead use allocation to aliases.
+Notes
+
+Temporary variables do not need to be declared, and cannot be given an initial value or a networking priority. Declaring a temporary variable is a warning (and the declaration is ignored) unless you specify an initial value or networking priority, in which case it's an error.
+
+Temporary timers don't exist. (How would they? Temporaries aren't meant to last for longer than some individual task during a single frame; they can't be used to track things across time.)
+
+When you write scripts using MegaloEdit, the official Megalo editor by Bungie and 343 Industries, you can use a larger number of temporary variables than in ReachVariantTool. Both tools face the same limit on how many temporary variables can exist, but if you hit that limit in MegaloEdit, its compiler will "spill over" into any global variables that you haven't already used, repurposing them as temporary variables. ReachVariantTool is unable to do this due to technical limitations in its design.
+Members
+
+number[n]
+
+    Temporary numbers. Ten are available, numbered from 0 to 9.
+object[n]
+
+    Temporary objects. Eight are available, numbered from 0 to 7.
+player[n]
+
+    Temporary players. Three are available, numbered from 0 to 2.
+team[n]
+
+    Temporary teams. Six are available, numbered from 0 to 5.
+
+
+Number
+
+Numbers can be integer constants or numeric variables. There are twelve global number variables, numbered from 0 to 11, which can be accessed as global.number[n].
+
+Integer constants can be any number between -32,768 and 32,767, inclusive. In the original version of Halo: Reach, the values of number variables are also limited to this range during play.
+
+In the Halo: The Master Chief Collection version of Halo: Reach, as of July 15, 2023, number variables can hold values between -2,147,483,648 and 2,147,483,647 during play.
+
+Object
+
+Object variables refer to objects that are currently present on the map. Objects that have not spawned do not count.
+
+There are sixteen global object variables, numbered from 0 to 15, which can be accessed as global.object[n].
+
+This type contains nested variables. There are 8 nested numbers, 4 nested objects, 4 nested players, 2 nested teams, and 4 nested timers available. Note that only 256 objects on the map can have variables at a time; if you try to set variables on objects past that limit, Megalo may fail to set variables on the new objects, or it may clear variables off of the old objects.
+Properties
+
+spawn_sequence
+
+    The object's Spawn Sequence value set in Forge.
+team
+
+    The object's owner team.
+
+Accessors
+
+health
+
+    The object's current health.
+max_health
+
+    The object's maximum health.
+max_shields
+
+    The object's maximum shields.
+shields
+
+    The object's current shields.
+
+Member conditions
+
+has_forge_label
+
+    Check whether this object has a given Forge label.
+is_in_use
+
+    Check whether this object is an Armor Ability currently being used by a player.
+is_of_type
+
+    Check whether this object is of a given type.
+is_out_of_bounds
+
+    Check whether this object is out of bounds.
+shape_contains
+
+    Check whether this object's shape boundary contains another object.
+
+Member actions
+
+add_weapon
+
+    Give a weapon to a biped, even if it isn't player-controlled.
+animate_device_position
+
+    Animate a device machine's position over time.
+apply_shape_color_from_player_member
+
+    Recolor an object's shape boundary based on a player variable.
+attach_to
+
+    Attaches this object to another one.
+copy_rotation_from
+
+    Rotate one object to match another.
+delete
+
+    Delete this object from the game world.
+detach
+
+    Detaches this object from anything it is attached to.
+enable_spawn_zone
+
+    Sets whether a Respawn Zone is enabled and able to affect spawning.
+face_toward
+
+    Rotate one object to face another.
+get_carrier a.k.a. try_get_carrier
+
+    Identify the player carrying a weapon or Armor Ability.
+get_device_position
+
+    Gets the current position level of a device machine.
+get_device_power
+
+    Gets the current power level of a device machine.
+get_distance_to
+
+    Returns the distance between this object and another.
+get_orientation
+
+    Returns a number representing the object's overall rotation.
+get_speed
+
+    Returns the object's speed in feet per second.
+kill
+
+    Kill an object.
+place_at_me a.k.a. create_object
+
+    Spawn a new object at this object.
+place_between_me_and
+
+    Spawn a new object between this object and another.
+push_upward a.k.a. apply_upward_impulse
+
+    Apply a random mostly-upward force to the object.
+remove_weapon
+
+    Remove a weapon from a biped.
+set_device_actual_position
+    No description available.
+set_device_animation_position
+
+    Sets the current animation and position of a device machine.
+set_device_position
+
+    Sets the current position level of a device machine.
+set_device_power
+
+    Sets the current power level of a device machine.
+set_garbage_collection_disabled
+
+    Disables garbage collection for objects.
+set_hidden
+
+    MCC-exclusive: Make an object invisible.
+set_invincibility
+
+    Make an object invincible.
+set_pickup_permissions
+
+    Adjust which players can pick up a weapon.
+set_progress_bar
+
+    Set whether an object displays a progress bar to certain players when they're inside of the object's shape volume, and sets which players are eligible to see it.
+set_scale
+
+    Resize an object.
+set_shape a.k.a. set_boundary
+
+    Change an object's shape boundary.
+set_shape_visibility
+
+    Adjust which players can see an object's shape boundary.
+set_spawn_location_fireteams a.k.a. set_fireteam_respawn_filter
+
+    Adjust which fireteam can spawn at a location.
+set_spawn_location_permissions a.k.a. set_respawn_filter
+
+    Adjust which players can spawn at a location.
+set_waypoint_icon
+
+    Change the icon that this waypoint displays.
+set_waypoint_priority
+
+    Change the waypoint's visual priority.
+set_waypoint_range
+
+    Change the distances at which waypoints are visible.
+set_waypoint_text
+
+    Set the text of an object's waypoint.
+set_waypoint_timer
+
+    Change the timer that a waypoint displays.
+set_waypoint_visibility
+
+    Adjust who can see this object's waypoint.
+set_weapon_pickup_priority
+
+    Set how a weapon is picked up.
+
+
+Player
+
+Player variables refer to players that are participating in the match, or that have participated in the match and since quit. Note that a "player" is distinct from a "player model," or "biped:" if the game has just started and you're still selecting a loadout, then you (the player) still exist even though you're not physically present on the map (you have no biped).
+
+There are eight global player variables, numbered from 0 to 7, which can be accessed as global.player[n].
+
+This type contains nested variables. There are 8 nested numbers, 4 nested objects, 4 nested players, 4 nested teams, and 4 nested timers available.
+Properties
+
+biped
+
+    The player's current biped.
+money
+
+    The player's money, to spend on requisitions as part of an unimplemented gameplay system.
+rating
+
+    The player's Arena rating.
+score
+
+    The player's current score.
+script_stat[n]
+
+    The value of a scripted Post-Game Carnage Report stat for this player.
+team
+
+    The player's owner team.
+
+Accessors
+
+frag_grenades
+
+    The player's current frag grenade count.
+plasma_grenades
+
+    The player's current plasma grenade count.
+
+Member conditions
+
+assisted_kill_of
+
+    Checks whether one player assisted another in killing a third.
+is_elite
+
+    Checks whether a player's current species is Elite.
+is_fireteam_leader
+
+    This function always returns false.
+is_monitor
+
+    Checks whether a player's current species is Monitor.
+is_not_respawning
+
+    Checks whether a player is not respawning.
+is_spartan
+
+    Checks whether a player's current species is Spartan.
+killer_type_is
+
+    Check what killed a player.
+
+Member actions
+
+add_weapon
+
+    Give a weapon to a player.
+apply_traits
+
+    Apply a set of player traits to a player for the current tick.
+force_into_vehicle
+
+    Force a player into a vehicle if any seat is available.
+get_armor_ability a.k.a. try_get_armor_ability
+
+    Identify the player's current Armor Ability.
+get_button_press_duration a.k.a. get_button_time
+
+    MCC-exclusive: Detect whether a player is holding a given button down. Intended for debugging purposes only.
+get_crosshair_target
+
+    Identify the object that the player is aiming at, if that object is changing the player's reticle color.
+get_fireteam
+
+    Returns the index of the fireteam that a player is on.
+get_scoreboard_pos
+
+    Get a player's position on the scoreboard.
+get_spree_count
+
+    Get the number of players that someone has killed without dying.
+get_vehicle a.k.a. try_get_vehicle
+
+    Identify the vehicle that a player is in.
+get_weapon a.k.a. try_get_weapon
+
+    Identify the player's current weapon.
+record_griefer_penalty
+
+    The specific function of this action is not known. Presumably it has something to do with keeping track of bad behavior in-game.
+set_biped
+
+    Revoke control of a player's current biped, and grant control of another one.
+set_co_op_spawning
+
+    Control whether a player uses co-op spawning.
+set_fireteam
+
+    Sets a player's current fireteam index.
+set_loadout_palette
+
+    Sets which loadout palette a player can select loadouts from.
+set_objective_allegiance_icon a.k.a. set_round_card_icon
+
+    Change the round card's icon.
+set_objective_allegiance_name a.k.a. set_round_card_text
+
+    Change the round card's icon caption.
+set_objective_text a.k.a. set_round_card_title
+
+    Change the round card's description text.
+set_primary_respawn_object
+
+    This function appears to set a player's default respawn object, when co-op spawning is enabled.
+set_req_purchase_modes
+
+    A development leftover related to a scrapped Requisition system.
+set_requisition_palette
+
+    A development leftover related to a scrapped Requisition system.
+set_respawn_vehicle
+
+    MCC-exclusive: Automatically spawn players inside of vehicles, without having to manually create vehicles and force players into them.
+set_vehicle_spawning_enabled
+
+    MCC-exclusive: Although intended to let you control whether players spawn in vehicles or not, this function doesn't appear to actually do anything.
+try_get_death_damage_mod a.k.a. get_death_damage_mod
+
+    Identify the modifier for the damage that killed this player.
+try_get_death_damage_type a.k.a. get_death_damage_type
+
+    Identify the type of damage that killed this player.
+try_get_killer a.k.a. get_killer
+
+    Identify the player who killed this player.
+
+
+Team
+
+A team is a group which may contain zero or more players.
+
+There are eight global team variables, numbered from 0 to 7, which can be accessed as global.team[n].
+
+This type contains nested variables. There are 8 nested numbers, 6 nested objects, 4 nested players, 4 nested teams, and 4 nested timers available.
+Properties
+
+score
+
+    The team's current score.
+script_stat[n]
+
+    The value of a scripted Post-Game Carnage Report stat for this player.
+
+Member conditions
+
+has_alliance_status
+
+    Check this team's relationship with another team.
+has_any_players
+
+    Check whether a team still has players on it.
+
+Member actions
+
+get_scoreboard_pos
+
+    Get a team's position on the scoreboard.
+set_co_op_spawning
+
+    Control whether a team uses co-op spawning.
+set_primary_respawn_object
+
+    This function appears to set a team's default respawn object, when co-op spawning is enabled.
+set_respawn_vehicle
+
+    MCC-exclusive: Automatically spawn players inside of vehicles, without having to manually create vehicles and force players into them.
+set_vehicle_spawning_enabled
+
+    MCC-exclusive: Although intended to let you control whether players spawn in vehicles or not, this function doesn't appear to actually do anything.
+
+
+Timer
+
+Timer variables are essentially numbers that represent a high-resolution quantity of time. They can be set to count upward or downward, and the speed at which they count can be changed as well. They can have their current values set to any integer quantity of seconds by script. Timers don't have a networking priority.
+
+If a timer variable is set to count down, then its rate will switch to stopped when it reaches zero. If a timer variable has a non-zero initial value and it is set to count up, then its rate will switch to stopped when it reaches that initial value. If a timer variable has a zero initial value and it is set to count up, then it will count up indefinitely.
+
+Timer values are high-resolution. If two timers are compared to each other, then they will compare properly even if the differences in their values are less than one second.
+
+There are eight global timer variables, numbered from 0 to 7, which can be accessed as global.timer[n].
+Member conditions
+
+is_zero
+
+    Checks whether the timer's value is zero.
+
+Member actions
+
+reset
+
+    Reset a timer to its initial value.
+set_rate
+
+    Set the rate and direction in which the timer advances.
+
+
+Bool
+
+A boolean value is either the word true or the word false. These values are typically used in cases where you need to specify whether something is "on" or "off," or "yes" or "no."
+
+In Megalo, you can also use an integer constant. Non-zero values are interpreted as "true," while zero values are interpreted as "false."
+
+Engine Icon
+
+The following is a list of icon names. Note that you can also use the word none to denote no icon, or the integer index of an icon.
+
+flag
+    A flag, identical to the one used as Capture the Flag's gametype icon.
+slayer
+    The icon for the Slayer gametype.
+oddball
+    A skull, identical to the one used as Oddball's gametype icon.
+koth
+    The icon for the King of the Hill gametype.
+juggernaut
+    The icon for the Juggernaut gametype.
+territories
+    The icon for the Territories gametype.
+assault
+    The icon for the Assault gametype.
+infection
+    The icon for the Infection gametype.
+vip
+    The icon for the VIP gametype.
+invasion
+    The icon for the Invasion gametype.
+invasion_slayer
+    The icon for the Invasion Slayer gametype.
+stockpile
+    The icon for the Stockpile gametype.
+action_sack
+    An Action Sack icon.
+race
+    The icon for the Race gametype.
+rocket_race
+    The icon for the Rocket Hog Race gametype.
+grifball
+    The icon for the Grifball gametype.
+soccer
+    A soccer ball.
+headhunter
+    The icon for the Headhunter gametype.
+crosshair
+    A crosshair.
+wheel
+    A wheel.
+swirl
+    A swirl icon — the same icon used for what is called "Insane" in legacy Reach and "Action Sack" in MCC.
+bunker
+    A bunker icon.
+health_pack
+    A health pack icon.
+castle_defense
+    A shield with a castle shape cut out of it.
+return
+    ...
+shapes
+    Line art of 3D geometric shapes.
+cartographer
+    The insignia for the Silent Cartographer.
+eight_ball
+    An eight-ball, from billiards.
+noble
+    The Noble Team insignia.
+covenant
+    A Covenant insignia.
+attack
+    The waypoint icon used to indicate a target to attack.
+defend
+    The waypoint icon used to indicate an objective to defend.
+ordnance
+    The waypoint icon used to indicate a power weapon or vehicle to collect.
+circle
+    ...
+recon
+    ...
+recover
+    ...
+ammo
+    The waypoint icon used to indicate an ammo pickup.
+skull
+    The icon for Firefight skulls.
+forge
+    The icon for Forge
+icon indices 39 - 49
+    These indices appear to be unused. Accordingly, they don't have names defined for them in this Megalo script dialect.
+recent_games
+    ...
+file_share
+    ...
+
+
+Forge Label
+
+A string literal containing the name of a Forge label, or an integer constant denoting the index of a Forge label in the game variant's label list.
+
+Format String
+
+Halo: Reach's scripting engine supports the display of "format strings." A format string can be a simple piece of text, but it can also include little placeholders that will automatically be replaced with other values (the format string "parameters") when the string is displayed. Up to two additional parameters can be provided after the format string itself.
+
+A percentage sign (%) marks the start of a placeholder; the content after it determines the type of placeholder to use, and in some cases, the options to use for the placeholder. If you want to write an actual percentage sign in text, you must type %%. Using a placeholder symbol incorrectly (including by writing just one % symbol) will cause Halo: Reach to refuse to display your string.
+Examples
+
+Here's an example of how to use format strings: this code, taken from Slayer, displays the number of points needed to win if the game variant has a score limit.
+
+for each player do
+   if game.score_to_win != 0 and game.teams_enabled == 1 then 
+      current_player.set_objective_text("Kill players on the enemy team.\r\n%n points to win.", game.score_to_win)
+   end
+   if game.score_to_win != 0 and game.teams_enabled == 0 then 
+      current_player.set_objective_text("Score points by killing other players.\r\n%n points to win.", game.score_to_win)
+   end
+   if game.score_to_win == 0 and game.teams_enabled == 1 then 
+      current_player.set_objective_text("Kill players on the enemy team.")
+   end
+   if game.score_to_win == 0 and game.teams_enabled == 0 then 
+      current_player.set_objective_text("Score points by killing other players.")
+   end
+end
+
+Persistent strings
+
+Some functions treat format strings as persistent. This means that those particular strings can't be used to display "transient" variables — that is, any variable whose value will likely be reset before the frame is over, like the current_player or killer_player variables.
+
+The game.show_message_to function is an example of a non-persistent string:
+
+for each player do
+   if current_player.number[0] == 1 then
+      game.show_message_to(all_players, "%s won the game!", current_player)
+      current_player.number[0] = 0
+   end
+end
+
+When that function runs, it will immediately substitute your format string parameters into the format string, and it will pass the resulting text to the kill feed, which remembers that text. This means that for the case above, your kill feed message will always display whatever player was current_player at the time the function was called.
+
+The widget.set_text function is an example of a persistent string:
+
+script_widget[0].set_text("%s won the game!", global.player[0])
+
+When that function runs, it doesn't immediately substitute out your placeholders. Instead, it remembers the format string, and it remembers which variables you passed as format string parameters — not the variables' values, but the variables themselves. Every frame, the HUD widget will take the format string and substitute out %s for the name of whatever player happens to be the one referred to by global.player[0] on that frame. If that variable's value is changed, the HUD widget will update in real time.
+
+This is why transient variables can't be used with persistent strings: their values don't last through a whole frame, so when the HUD widget (or object waypoint or similar UI) redoes the format string substitution, the variables won't have the values you intended.
+
+If you want players to see their own names (or variables) in a persistent string, then use variables like local_player.
+Placeholder codes by type
+
+Different placeholder codes are intended to format different kinds of information. If you pass a value of the wrong type (e.g. passing a player variable for a placeholder meant for numbers), then you'll see a default value which varies depending on the placeholder code.
+
+If you don't pass any value at all, then the placeholder will be cut out of the string, but the string should still display as long as the placeholder itself was valid.
+Integer number
+
+%n
+%o
+%p
+%s
+%t
+    All of these codes print the number normally, as you would expect.
+    Default result: 0
+
+Object
+
+%n
+%o
+%p
+%s
+%t
+    Displays the name of the object as defined in the map file. Note that most objects don't have actual names defined, and will instead display unknown.
+
+Player
+
+%n
+%o
+%p
+%s
+%t
+    Displays the player's Xbox LIVE gamertag.
+
+Timer
+
+%n
+%o
+%p
+%s
+%t
+    Displays minutes and seconds, separated with a colon and with the seconds padded to two digits, e.g. 0:05.
+
+Unknown
+
+%c
+    Sometimes, this fails as an error and prevents the string from being displayed. Other times, it produces a line break followed by the number 25. Notably, in ASCII, the number 25 is used to encode the percentage sign.
+%d
+%i
+%u
+%x
+%X
+
+    Seems to always produce 1, no matter what you pass in.
+
+    In the C and C++ programming languages, these codes are used to format integers. You can put additional settings between the percentage sign and the number, in order to pad the number to a certain length using spaces or zeroes. Those settings work here, but they always act as if you passed in the number 1; %03d, for example, always produces 001.
+%S
+%Z
+    Crashes the game instantly, when displayed.
+
+Decimal number
+
+Format codes exist for decimal numbers, but it's not clear why. None of the variable types available to Megalo are decimal numbers, and these codes don't work for timers (except when timers have special meanings for them).
+
+These codes seem to be meant for double-precision floating-point values.
+
+%a
+    Prints the number in hexadecimal (base-16) format.
+    Default result: 0x0.0000000000001p-1022
+%A
+    Same as %a, but the result uses all-caps.
+    Default result: 0X0.0000000000001P-1022
+%e
+    Prints the number using scientific notation.
+    Default result: 0.000000e+00
+%f
+    Prints the number out to six significant figures.
+    Default result: 0.000000
+%g
+    Prints the number out to exactly as many decimal points as is necessary if the number has fewer than six significant digits before the decimal point and fewer than four after; otherwise, uses scientific notation like %e does.
+    Default result: 0
+
+
+Incident
+
+This type represents events that can occur in a match. You can "send" incidents to the game engine in order to award medals, play announceover voiceovers, and more. Note that while many of these incidents correspond to medals and some correspond to Achievements, sending them won't necessarily award those medals or Achievements; among other things, incident responses can be configured on a per-game-mode basis, with distinctions between Matchmaking and Custom Games.
+
+Halo: The Master Chief Collection may respond to incidents in its own ways, which may not be evident through examination of Halo: Reach's game files. 343 Industries seems to be mindful of this; for example, when a Freeze Tag round begins its Neutral Flag phase, 343i imitates the effect of the announce_ctf_start incident (by manually writing a message to the kill feed and playing the announcer sound) instead of sending it directly. In general, if an incident that seems purely cosmetic also seems to have been intended for a particular purpose, it may be best to use it primarily for that purpose.
+Under the hood
+
+Internally, incidents and their effects are defined within each *.MAP file, in the incident_globals_definition (ingd) tags; each tag is a list of incident definitions. Each incident in that list defines a name and a variety of other properties, including the game modes, lobby types, and Campaign/Firefight difficulties the incident is disallowed from. The actual behaviors of the incidents, however, are defined elsewhere. Incidents can define any number of responses, and each response can specify the internal name of a "game engine event," medal, achievement, or Haloscript file; responses can also limit what game/lobby/difficulties they're allowed in (so incidents blacklist, and responses can optionally whitelist).
+
+When a response specifies a game engine event name, the event itself is defined in the gegl tag. Each event can specify a variety of properties including kill feed messages and announcer voiceovers to play. Medals, in turn, are defined in the gmeg tag.
+
+The ingd (incident globals definition) tags define the incidents themselves. When an incident has an event name listed, that name is one of the "Engine Events" listed in the map's gegl (game engine globals) tag. Some incidents only exist to facilitate "spree" medals; for example, the wingman_spawn incident doesn't do anything in and of itself, but the wingman_5x, wingman_10x, and wingman_15x incidents all trigger automatically when wingman_spawn has occurred a certain number of times.
+
+Incidents can be set to trigger automatically in response to other incidents occurring a given number of times. For example, multikill_x5 is set to occur if kill occurs five times, resetting the count if four seconds (the standard multi-kill delay) pass without a kill. In turn, multikill_x5 is set to send the multikill_x5 game engine event (which shows kill feed messages and announcer voiceovers) and award the medal_multikill_5 medal (which is basically just a medal graphic and associated stat-tracking in the Post-Game Carnage Report).
+Firefight incidents
+
+There are two ingd lists: one for Multiplayer and one for Firefight. When you refer to an incident in Megalo, what gets compiled into the gametype is the index of an incident in the Multiplayer list. If a gametype specifies an index that extends past the end of the Multiplayer list, then the gametype will index into the Firefight list. To give an example: as of this writing, the highest defined Multiplayer incident is 391, so "incident 392" is actually Firefight's "incident 0."
+
+This means that you can use Firefight-exclusive incidents in Megalo. However, the vast majority of these incidents were configured to only have any effect in Firefight. The two known exceptions are survival_5_ai_remaining and survival_2_ai_remaining, which play the "Five enemies remaining" and "Two enemies remaining!" announcer lines. These work in Custom Games.
+
+There is one problem with using Firefight incidents: Bungie and 343 Industries treat the game's two incident lists as separate, even if the underlying game engine doesn't. During Halo: Reach's development, Bungie added incidents onto the end of the multiplayer incident list, displacing the Firefight incidents. 343 Industries have done the same in the Master Chief Collection build of the game, adding two incidents (unused and apparently intended for the "pre-game" play session in the Custom Game Browser) to the end of the multiplayer list. If 343i ever adds more multiplayer incidents, then any gametypes that try to access Firefight incidents will, in effect, have the Firefight list shifted out from under them, and they'll access Firefight incidents other than the ones they meant to access.
+All multiplayer incidents
+
+kill
+    The cause player has killed the target player.
+grenade_kill
+    The cause player has killed the target player with a grenade.
+guardian_kill
+    The target player was killed by the Guardians.
+death
+    The target player has died at the cause player's hands.
+assist
+    Seems to indicate that the cause player assisted in killing some other player. It's not known whether the target player is meaningful.
+suicide
+    The cause player has committed suicide.
+fell_to_death
+    The cause player has fallen to their death. Unlike the "suicide" incident, this incident has unique kill feed text and no announcer voiceover.
+kill_betrayal
+    The cause player has betrayed the target player.
+melee_kill
+    The cause player has melee'd the target player to death, earning a Pummel medal.
+assassination_kill
+    The cause player has melee'd the target player in the back, killing them instantly and earning a Beatdown medal.
+finishing_move_kill
+    The cause player has assassinated the target player (i.e. a special assassination animation was played), earning an Assassination medal.
+terminal_velocity_assassination
+    Yet to be determined.
+recharge_health
+    Yet to be determined. Examination of the incident definition in the game files suggests that the incident is sent by the game engine when a player restores health with a Health Pack, and that the incident itself triggers the "Doctor, Doctor" Achievement.
+wildlife_kill
+    A Campaign-exclusive incident which presumably awards the H. Ryan Memorial medal.
+headshot_kill
+    The cause player has killed the target player with a headshot.
+sniper_headshot_kill
+    The cause player has sniped the target player with a headshot.
+emp_assist
+    The cause player assisted in the killing of some other player by draining the victim's shields with an EMP. It's not known whether the target player is meaningful.
+supercombine_kill
+    The cause player has killed the target player with a supercombine explosion from a Needler or Needle Rifle.
+sniper_kill
+    The cause player has killed the target player with a body shot from a Sniper Rifle.
+laser_kill
+    The cause player has killed the target player with a Spartan Laser.
+rocket_kill
+    The cause player has killed the target player with a Rocket Launcher.
+shotgun_kill
+    The cause player has killed the target player with a Shotgun.
+hammer_kill
+    The cause player has killed the target player with a Gravity Hammer.
+small_arms_kill
+    The cause player has killed the target player with a Magnum or a Plasma Pistol.
+auto_kill
+    The cause player has killed the target player with an Assault Rifle, Needler, Plasma Repeater, Plasma Rifle, or Spiker.
+precision_kill
+    The cause player has killed the target player with a DMR, Focus Rifle, Needle Rifle, or Sniper Rifle.
+launcher_kill
+    The cause player has killed the target with a Grenade Launcher.
+pistol_kill
+    The cause player has killed the target player with a Magnum.
+blamite_kill
+    The cause player has killed the target player with a Needler or Needle Rifle.
+dmr_kill
+    The cause player has killed the target player with a DMR.
+enemy_vehicle_kill
+    Exclusive to Campaign. Indicates that the cause player has killed a vehicle occupied by an enemy. There are no medals tied to this incident, but it appears that in Halo: Reach's original Xbox 360 release, these kills could contribute to daily challenges for killing enemies.
+sword_kill
+    The cause player has killed the target player with an Energy Sword.
+airstrike_kill
+    The cause player has killed the target player with a Target Locator.
+airstrike_vehicle_kill
+    Exclusive to Campaign. This incident fires when enemy_vehicle_kill is triggered using a Target Locator.
+sticky_grenade_kill
+    The cause player has killed the target player with a stuck grenade, earning a Grenade Stick medal.
+splatter_kill
+    The cause player has killed the target player with a splatter, earning a Splatter medal.
+zombie_kill_kill
+    Sending this incident awards a Zombie Kill medal: the cause player is a survivor and has killed the target player, a zombie.
+infection_kill
+    Sending this incident awards an Infection medal: the cause player is a zombie and has killed and infected the target player, a survivor.
+kill_elite
+    Exclusive to Campaign and Firefight. This incident fires when a player kills an AI-controlled Elite.
+kill_grunt
+    Exclusive to Campaign and Firefight. This incident fires when a player kills an AI-controlled Grunt.
+kill_elite_bob
+    Exclusive to Campaign and Firefight. This incident fires when a player kills an AI-controlled BOB Elite.
+kill_enemy_leader
+    Exclusive to Campaign and Firefight. This incident fires when a player kills an AI-controlled Elite.
+kill_enemy_infantry
+    Exclusive to Campaign and Firefight. This incident fires when a player kills an AI-controlled Grunt, Drone, or "Mule."
+kill_enemy_specialist
+    Exclusive to Campaign and Firefight. This incident fires when a player kills an AI-controlled Brute, Engineer, Hunter, Jackal, or Skirmisher.
+kill_from_the_grave
+    The cause player killed the target player while dead.
+ordnance_kill
+    The cause player has killed the target player with a Concussion Rifle, Fuel Rod Gun, Grenade Launcher, Plasma Launcher, Rocket Launcher, Spartan Laser, or Target Locator.
+vehicle_kill
+    The cause player has killed the target player with a Banshee, Falcon, Ghost, Machine Gun Turret, Missile Pod, Mongoose, Plasma Cannon, Revenant, Sabre, Scorpion, Shade, Trip Mine, Warthog, or Wraith.
+shade_aa_kill
+    The cause player has destroyed a Shade turret.
+driver_assist_gunner
+    The cause player was driving a vehicle while an allied player in another seat killed an enemy, earning the driver a Wheelman medal.
+highjack
+    The cause player hijacked the target player's land vehicle, booting the target player out and stealing the vehicle, and earning a Hijack medal.
+skyjack
+    The cause player hijacked the target player's air vehicle, booting the target player out and stealing the vehicle, and earning a Skyjack medal.
+bulltrue
+    The cause player used a Shotgun to kill an enemy player while the victim was in the middle of an Energy Sword lunge, earning a Bulltrue medal. Triggering this incident in Matchmaking on the Xbox 360 would also unlock Emile's helmet as an Xbox Avatar Award.
+killjoy
+    The cause player ended an enemy's spree, earning the Killjoy medal.
+survival_wave_completed_deathless
+    A Firefight incident which signals the completion of a wave without any defenders dying.
+survival_wave_completed
+    A Firefight incident which signals the completion of a wave.
+survival_set_completed
+    A Firefight incident which signals the completion of a set.
+survival_set_completed_deathless
+    A Firefight incident which signals the completion of a set without any defenders dying.
+survival_full_round_completed
+    A Firefight incident which signals the completion of a round.
+survival_full_round_completed_deathless
+    A Firefight incident which signals the completion of a round without any defenders dying.
+campaign_level_completed
+    A Campaign-exclusive incident which signals the completion of a level. It appears to also be responsible for awarding the "We're Just Getting Started" Achievement.
+flagcarrier_kill
+    Sending this incident awards a Flag Carrier Kill medal: the cause player has killed the target player, who was a Flag Carrier.
+kill_with_oddball
+    Sending this incident awards an Oddball Kill medal to the cause player for killing the target player.
+bomb_carrier_kill
+    Sending this incident awards a Bomb Carrier Kill medal to the cause player for killing the target player, who was a Bomb Carrier.
+juggernaut_game_start
+    Sending this incident signals the start of a round in a Juggernaut match. An appropriate announcer voiceover will play for the cause player.
+kill_as_juggernaut
+    Sending this incident signals that the cause player, a Juggernaut, has killed an enemy.
+juggernaut_new
+    Sending this incident announces the selection of a new Juggernaut.
+juggernaut_kill
+    Sending this incident signals that the cause player has killed the target player, a Juggernaut.
+vip_kill
+    Sending this incident awards a VIP Kill medal to the cause player for killing the target player, an enemy VIP.
+koth_game_start
+    Sending this incident signals the start of a round in a King of the Hill match. An appropriate announcer voiceover will play for the cause player.
+hill_controlled
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a hill is now controlled by the cause player.
+hill_contested
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a hill is now contested. It seems that this incident may be meant for FFA games.
+hill_controlled_team
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a hill is now controlled by the cause team.
+hill_contested_team
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a hill is now contested. It seems that this incident may be meant for team games.
+hill_moved
+    Sending this incident triggers an announcer voiceover telling players that a hill has moved.
+kill_within_hill
+    No description available.
+ball_game_start
+    Sending this incident signals the start of a round in an Oddball match. An appropriate announcer voiceover will play for the cause player.
+ball_taken
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a ball has been taken by the cause player.
+ball_dropped
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a ball has been dropped by the cause player.
+ball_taken_team
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a ball has been taken by the cause team.
+ball_dropped_team
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a ball has been dropped by the cause team.
+ball_spawned
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a ball has spawned.
+ball_reset
+    Sending this incident triggers an announcer voiceover and kill feed message telling players that a ball has been reset.
+ball_carrier_kill
+    Sending this incident signals that the cause player has killed the target player, a Ball Carrier.
+assault_game_start
+    Sending this incident signals the start of a round in an Assault match. An appropriate announcer voiceover will play for the cause player.
+bomb_planted
+    The cause player has planted a bomb.
+bomb_taken
+    The cause player has picked up a bomb.
+bomb_dropped
+    The cause player has dropped a bomb.
+bomb_armed
+    The cause player has armed a bomb. The target is irrelevant; the official Assault variant passes all_players.
+bomb_reset_neutral
+    A neutral bomb was reset.
+bomb_returned
+
+    The cause player has returned the target team's bomb.
+
+    This incident doesn't seem to be used in the official Assault variant, and inspection in Assembly suggests that it may be incomplete. The related "Engine Events" use incorrect string names, so kill feed messages wouldn't appear as intended.
+bomb_disarmed
+    A bomb has been disarmed. This incident triggers an announcer voiceover and kill feed message for all players. The cause and target are irrelevant; the official Assault variant passes all_players for both.
+bomb_arming
+    The cause player has begun arming the bomb. This incident triggers a kill feed message for all players. The official Assault variant does not use this incident.
+bomb_detonated
+    The cause team has detonated a bomb, to the detriment of the target team.
+bomb_reset
+    The cause team's bomb was reset.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+terr_game_start
+    Sending this incident signals the start of a round in a Territories match. An appropriate announcer voiceover will play for the cause player.
+terr_captured
+    The cause player has captured a territory originally belonging to the target team.
+terr_contested
+    A territory is contested. The cause and target are irrelevant; the official Territories variant passes all_players for both.
+teleporter_used
+    Sending this incident plays a sound for the cause player. It is the same sound that plays when entering a teleporter normally.
+race_game_start
+    Sending this incident signals the start of a round in a Race match. An appropriate announcer voiceover will play for the cause player.
+rally_game_start
+    Sending this incident signals the start of a round in a Rally match. An appropriate announcer voiceover will play for the cause player.
+checkpoint_reached
+    Sending this incident triggers the "Checkpoint reached!" announcer voiceover and kill feed message for the cause player.
+checkpoint_reached_team
+    Sending this incident triggers the "Checkpoint reached!" announcer voiceover and kill feed message for the cause team.
+lap_complete
+    Sending this incident triggers the "Lap complete!" announcer voiceover and kill feed message for the cause player.
+final_lap
+    Sending this incident triggers the "Final lap!" announcer voiceover for the cause player, and a kill feed message for all players.
+final_lap_team
+    Sending this incident triggers the "Final lap!" announcer voiceover for the cause team, and a kill feed message for all players.
+rocket_race_game_start
+    Sending this incident signals the start of a round in a Rocket Race match. An appropriate announcer voiceover will play for the cause player.
+ctf_game_start
+    Sending this incident signals the start of a round in a Capture the Flag match. An appropriate announcer voiceover will play for the cause player.
+ctf_team
+    No description available.
+flag_grabbed
+    The cause player has taken the target team's flag.
+flag_dropped_neutral
+    The cause player has dropped the neutral flag.
+flag_dropped
+    The cause player has dropped the target team's flag.
+flag_grabbed_neutral
+    The cause player has taken the neutral flag.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+flag_scored
+    The cause player has successfully captured a flag.
+flag_reset_neutral
+    The neutral flag has been reset. The cause and target are irrelevant; the official Capture the Flag variant passes the flag's last carrier player as the cause, and the flag's owning team (i.e. neutral team) as the target.
+flag_reset
+    A flag has been reset. The cause and target are irrelevant; the official Capture the Flag variant passes the flag's owning team for both.
+flag_recovered
+    The target team's flag has been recovered. The cause is irrelevant; the official Capture the Flag variant passes the flag's owning team.
+kill_with_flag
+    Sending this incident awards the Flag Kill medal.
+team_offense
+    Sending this incident triggers an announcer voiceover and kill feed message indicating that the cause player is on Offense. It is usually sent at the start of the round during asymmetric team games, immediately after the incident to announce the start of a gametype round.
+team_defense
+    Sending this incident triggers an announcer voiceover and kill feed message indicating that the cause player is on Defense. It is usually sent at the start of the round during asymmetric team games, immediately after the incident to announce the start of a gametype round.
+headhunter_game_start
+    Sending this incident signals the start of a round in a Headhunter match. An appropriate announcer voiceover will play for the cause player.
+skulls_taken
+    The cause player has picked up one or more skulls.
+skulls_scored
+    The cause player has scored skulls.
+skulls_dropped
+    This incident was presumably intended to be sent when a player drops skulls, but it isn't hooked up to anything in the game files, and has no effect.
+skullamanjaro
+    Sending this incident awards a Skullamanjaro medal to the cause player.
+[unused]
+    This incident ID is unused.
+infection_game_start
+    Sending this incident signals the start of a round in an Infection match. An appropriate announcer voiceover will play for the cause player.
+inf_new_alpha
+    Sending this incident displays a kill feed message for the cause player telling them that they are an Alpha Zombie.
+inf_new_infection
+    Sending this incident displays a kill feed message to all players informing them that the cause player infected the target player.
+inf_new_zombie
+    Sending this incident triggers an announcer voiceover and kill feed message for the cause player telling them that they are a new zombie.
+inf_last_man
+    Sending this incident awards the Last Man Standing medal to the cause player. The cause player hears an announceover voiceover, and all players see a kill feed message identifying the cause player as the last man standing.
+infection_survivor_win
+    Sending this incident triggers a kill feed message for all players informing them that the survivors have won.
+infection_zombie_win
+    ending this incident triggers a kill feed message for all players informing them that the zombies have won.
+stockpile_game_start
+    Sending this incident signals the start of a round in a Stockpile match. An appropriate announcer voiceover will play for the cause player.
+stock_flags_collected
+    Sending this incident triggers an announcer voiceover and kill feed message telling all players that flags have been collected.
+stock_flag_reset
+    Sending this incident triggers an announcer voiceover and kill feed message telling all players that a flag has been reset.
+swat_game_start
+    Sending this incident signals the start of a round in a SWAT match. An appropriate announcer voiceover will play for the cause player.
+action_sack_game_start
+    Sending this incident signals the start of a round. An announcer voiceover will play for the cause player, saying, "Action Sack."
+bumper_cars_game_start
+    Sending this incident signals the start of a round. An announcer voiceover will play for the cause player, saying, "Bumper Cars."
+custom_game_start
+    Sending this incident signals the start of a round. An announcer voiceover will play for the cause player, saying, "Custom."
+dogfight_game_start
+    No description available.
+fiesta_game_start
+    Sending this incident signals the start of a round. An announcer voiceover will play for the cause player, saying, "Fiesta."
+golf_game_start
+    No description available.
+grifball_game_start
+    Sending this incident signals the start of a round in a Grifball match. An appropriate announcer voiceover will play for the cause player.
+hogpile_game_start
+    No description available.
+pinata_game_start
+    No description available.
+soccer_game_start
+    No description available.
+[unused]
+    This incident ID is unused.
+new_juggernaut
+    The cause player has become the Juggernaut. An announcer voiceover and kill feed message will play.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+revenge_kill
+    The cause player has killed the target player, who was responsible for the cause player's last death. In so doing, the cause player has earned the Revenge medal. The target player will also see a kill feed message.
+close_call
+    The incident for the "Close Call" medal.
+opportunist_kill
+    The incident for the "Reload This!" medal.
+first_blood
+    The incident for the "First Strike" medal.
+wingman_spawn
+    Examination of the incident definition in the game files suggests that this incident "powers" the various Wingman spree medals.
+sprinting_kill
+    The incident for the "Headcase" medal.
+pull_kill
+    The incident for the "Pull" medal.
+perfection
+    The incident for the "Perfection" medal.
+showstopper
+    No description available.
+yoink
+    No description available.
+second_wind
+    No description available.
+avenged
+    No description available.
+avenger
+    No description available.
+life_saved
+    No description available.
+lifesaver
+    No description available.
+firebird
+    No description available.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+extermination
+    No description available.
+multikill_x2
+    No description available.
+multikill_x3
+    No description available.
+multikill_x4
+    No description available.
+multikill_x5
+    No description available.
+multikill_x6
+    No description available.
+multikill_x7
+    No description available.
+multikill_x8
+    No description available.
+multikill_x9
+    No description available.
+multikill_x10
+    No description available.
+5_in_a_row
+    No description available.
+10_in_a_row
+    No description available.
+15_in_a_row
+    No description available.
+20_in_a_row
+    No description available.
+25_in_a_row
+    No description available.
+30_in_a_row
+    No description available.
+35_in_a_row
+    No description available.
+40_in_a_row
+    No description available.
+[unused]
+    This incident ID is unused.
+assist_5x
+    The incident for the "Assist Spree" medal.
+assist_10x
+    The incident for the "Sidekick" medal.
+assist_15x
+    The incident for the "Second Gunman" medal.
+wheelman_5x
+    No description available.
+wheelman_10x
+    No description available.
+wheelman_15x
+    No description available.
+shotgun_5x
+    No description available.
+shotgun_10x
+    No description available.
+shotgun_15x
+    No description available.
+sniper_5x
+    No description available.
+sniper_10x
+    No description available.
+sniper_15x
+    No description available.
+sword_5x
+    No description available.
+sword_10x
+    No description available.
+sword_15x
+    No description available.
+sticky_grenade_5x
+    No description available.
+sticky_grenade_10x
+    No description available.
+sticky_grenade_15x
+    No description available.
+laser_5x
+    No description available.
+laser_10x
+    No description available.
+laser_15x
+    No description available.
+gravity_hammer_5x
+    No description available.
+gravity_hammer_10x
+    No description available.
+gravity_hammer_15x
+    No description available.
+splatter_5x
+    No description available.
+splatter_10x
+    No description available.
+splatter_15x
+    No description available.
+juggernaut_5x
+    No description available.
+juggernaut_10x
+    No description available.
+juggernaut_15x
+    No description available.
+infection_5x
+    The incident for the "Infection Spree" medal. Infection scripts do not send this incident manually; the game seems to automatically detect it based on the number of single infection incidents sent.
+infection_10x
+    The incident for the "Mmmm... Brains" medal. Infection scripts do not send this incident manually; the game seems to automatically detect it based on the number of single infection incidents sent.
+infection_15x
+    The incident for the "Thriller" medal. Infection scripts do not send this incident manually; the game seems to automatically detect it based on the number of single infection incidents sent.
+zombie_kill_5x
+    The incident for the "Zombie Killing Spree" medal. Infection scripts do not send this incident manually; the game seems to automatically detect it based on the number of single zombie kill incidents sent.
+zombie_kill_10x
+    The incident for the "Hell's Janitor" medal. Infection scripts do not send this incident manually; the game seems to automatically detect it based on the number of single zombie kill incidents sent.
+zombie_kill_15x
+    The incident for the "Hell's Jerome" medal. Infection scripts do not send this incident manually; the game seems to automatically detect it based on the number of single zombie kill incidents sent.
+infection_survive
+    Awards the cause player a medal for surviving an Infection round.
+koth_spree
+    No description available.
+wingman_5x
+    No description available.
+wingman_10x
+    No description available.
+wingman_15x
+    No description available.
+invasion_game_start
+    No description available.
+invasion_game_start_c
+    No description available.
+inv_spartan_win
+    No description available.
+inv_spartans_win_rd1
+    No description available.
+inv_spartans_win_rd2
+    No description available.
+inv_elite_win
+    No description available.
+inv_elites_win_rd1
+    No description available.
+invasion_elites_win_rd2
+    No description available.
+inv_core_grabbed
+    No description available.
+inv_core_stolen
+    No description available.
+inv_core_dropped
+    No description available.
+inv_core_captured
+    No description available.
+inv_core_reset
+    No description available.
+bone_cv_defeat
+    No description available.
+bone_cv_ph1_defeat
+    No description available.
+bone_cv_ph1_intro
+    No description available.
+bone_cv_ph1_victory
+    No description available.
+bone_cv_ph2_defeat
+    No description available.
+bone_cv_ph2_victory
+    No description available.
+bone_cv_ph3_victory
+    No description available.
+bone_cv_victory
+    No description available.
+bone_sp_defeat
+    No description available.
+bone_sp_ph1_intro
+    No description available.
+bone_sp_ph1_victory
+    No description available.
+bone_sp_ph2_intro
+    No description available.
+bone_sp_ph2_victory
+    No description available.
+bone_sp_ph3_defeat
+    No description available.
+bone_sp_ph3_intro
+    No description available.
+bone_sp_ph3_victory
+    No description available.
+isle_cv_defeat
+    No description available.
+isle_cv_ph1_intro
+    No description available.
+isle_cv_ph1_victory
+    No description available.
+isle_cv_ph2_intro
+    No description available.
+isle_cv_ph2_victory
+    No description available.
+isle_cv_ph3_defeat
+    No description available.
+isle_cv_ph3_intro
+    No description available.
+isle_cv_ph3_victory
+    No description available.
+isle_sp_defeat
+    No description available.
+isle_sp_ph1_defeat
+    No description available.
+isle_sp_ph1_extra
+    No description available.
+isle_sp_ph1_intro
+    No description available.
+isle_sp_ph1_victory
+    No description available.
+isle_sp_ph2_defeat
+    No description available.
+isle_sp_ph2_victory
+    No description available.
+isle_sp_ph3_victory
+    No description available.
+isle_sp_victory
+    No description available.
+invasion_slayer_start
+    Sending this incident signals the start of a round in an Invasion Slayer match. An appropriate announcer voiceover will play for the cause player.
+[unused]
+    This incident ID is unused.
+game_start_slayer
+    Sending this incident signals the start of a round in a Slayer match. An appropriate announcer voiceover will play for the cause player.
+team_game_start
+    Examination of the incident definition in the game files indicates that this incident does absolutely nothing.
+one_minute_win
+    Sending this incident triggers an announcer voiceover telling the player that they are one minute from winning. It is typically used in modes that award points over time, such as King of the Hill.
+one_minute_team_win
+    No description available.
+half_minute_win
+    Sending this incident triggers an announcer voiceover telling the player that they are thirty seconds from winning. It is typically used in modes that award points over time, such as King of the Hill.
+half_minute_team_win
+    No description available.
+30_minutes_remaining
+    No official gametypes send this incident.
+15_minutes_remaining
+    No official gametypes send this incident.
+5_minutes_remaining
+    No official gametypes send this incident.
+1_minute_remaining
+    No official gametypes send this incident.
+30_seconds_remaining
+    No official gametypes send this incident.
+10_seconds_remaining
+    No official gametypes send this incident.
+round_over
+    No official gametypes send this incident.
+sudden_death
+    Sending this incident triggers an announcer voiceover telling players that Sudden Death time has begun. Official gametypes only send it when Sudden Death begins; if Sudden Death pauses and later resumes, the incident is not sent again.
+game_over
+    No official gametypes send this incident.
+gained_lead
+    No official gametypes send this incident.
+gained_team_lead
+    No official gametypes send this incident.
+lost_lead
+    No official gametypes send this incident.
+lost_team_lead
+    No official gametypes send this incident.
+tied_leader
+    No official gametypes send this incident.
+tied_team_leader
+    No official gametypes send this incident.
+player_joined
+    No official gametypes send this incident.
+player_switched_team
+    No official gametypes send this incident.
+player_rejoined
+    No official gametypes send this incident.
+player_quit
+    No official gametypes send this incident.
+player_booted_player
+    No official gametypes send this incident.
+respawn_tick
+    Sending this incident plays a sound for the cause player: one of the beeps in the respawn countdown.
+respawn_tick_final
+    Sending this incident plays a sound for the cause player: one of the final beep in the respawn countdown.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+multikill_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+headshot_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+spree_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+assist_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+technician_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+wheelman_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+auto_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+small_arms_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+ordnance_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+vehicle_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+grenades_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+precision_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+finishing_move_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+cqc_comm
+    A Campaign- and Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+set_clear_comm
+    A Firefight Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+deathless_round_comm
+    A Firefight Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+kill_leader_comm
+    A Campaign- and Firefight Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+kill_infantry_comm
+    A Campaign- and Firefight Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+kill_specialist_comm
+    A Campaign- and Firefight Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+destroy_vehicle_comm
+    A Campaign- and Firefight Matchmaking-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+clear_a_mission_comm
+    A Campaign-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+campaign_level_completed_deathless
+    A Campaign-exclusive incident tied to the Commendations system in the game's original Xbox 360 release.
+player_kills_spartan
+    Examination of the game's incident definitions suggests that this incident triggers automatically when an Elite player kills a Spartan player. If this incident fires five times in a row, it automatically triggers the player_kill_spartan_achieve incident.
+player_kill_spartan_achieve
+    Examination of the game's incident definitions suggests that this incident is responsible for the "Knife to a Gun Fight" Achievement, awarded for playing Firefight as an Elite and killing five Spartans. The Achievement could theoretically be earned in Multiplayer, but it is Matchmaking-only, and it's not known whether the player_kills_spartan incident is a requirement or merely a trigger.
+core_killed_achieve
+    No description available.
+m45_elite_pod
+    No description available.
+dmr_acheive
+    No description available.
+supercombine_achieve
+    No description available.
+pistol_achieve
+    No description available.
+wingman_achieve
+    No description available.
+3kiva_clear
+    No description available.
+leg_set_achieve
+    No description available.
+2_for_1_achieve
+    No description available.
+cruiser_fast_achieve
+    No description available.
+firebird_achieve
+    No description available.
+tank_survive_achieve
+    No description available.
+race_m20
+    No description available.
+race_m20_fast
+    No description available.
+terminal_vel_achieve
+    No description available.
+wildlife_achieve
+    No description available.
+skunked_achieve
+    Sending this achievement awards the Skunked Achievement to the cause player. It is intended to be awarded for winning an Invasion round in the first phase, i.e. playing defense and preventing offense from ever winning a phase. The incident is sent individually for each player on the defending team.
+m52_aa_kill
+    No description available.
+zealot_achieve
+    No description available.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+dlc_achieve_1
+    Sending this achievement awards the Return to Sender Achievement (from the Defiant Map Pack) to the cause player if they are also the target player. It is intended to be awarded for returning two flags during a Capture the Flag match (even if on different rounds).
+dlc_achieve_2
+
+    Sending this incident awards a DLC Achievement to the player if they are specified as both the cause and the target. The incident must be sent with an integer whose value determines which achievement is awarded:
+
+    59: Don't Touch That!
+        Prevent the attacking team from touching the flag in any round during a One Flag CTF match.
+    60: Paper Beats Rock
+        Assassinate an enemy player no more than three seconds after they stop using Armor Lock.
+    61: All Alone
+        In Infection, become the Last Man Standing.
+    62: Top Shot
+        Score three headshot kills in a row without dying.
+    63: Emergency Room
+        In Infection, infect three players in a single round.
+    64: Stick It To The Man!
+        Kill a flag carrier with a stuck plasma grenade.
+    65: Dive Bomber
+        Assassinate an enemy player while using a Jetpack.
+    66: License to Kill
+        Splatter five enemy players during a single match.
+    68: From Hell's Heart
+        After being stuck with a plasma grenade, make sure that the player who stuck you dies in the blast with you.
+
+dlc_achieve_3
+    No description available.
+dlc_achieve_4
+    No description available.
+dlc_achieve_5
+    Sending this incident awards the Cross-Mappin' Achievement (from the Noble Map Pack) to the cause player. It is intended to be awarded for killing the target player at long range with a DMR.
+dlc_achieve_6
+    Sending this achievement awards the You Ate All The Chips Achievement (from the Noble Map Pack) to the cause player. It is intended to be awarded for collecting all of the flags on the map at once during a Stockpile match. The incident is sent for each player on the relevant team individually.
+dlc_achieve_7
+    No description available.
+dlc_achieve_8
+    Sending this incident awards the You Blew It Up! Achievement (from the Noble Map Pack) to the cause player. It is intended to be awarded for blowing up the research facility in Invasion: Breakpoint. The incident is sent for each player on the attacking team individually.
+dlc_achieve_9
+    No description available.
+dlc_achieve_10
+    Sending this achievement awards the Offensive Driver Achievement (from the Noble Map Pack) to the cause player for killing the target player. It is intended to be awarded for earning a kill in a Rocket (Hog) Race match.
+[unused]
+    This incident ID is unused.
+dlc_achieve_11
+    No description available.
+dlc_achieve_12
+    No description available.
+dlc_achieve_13
+    No description available.
+dlc_achieve_14
+    No description available.
+dlc_achieve_15
+    No description available.
+dlc_achieve_16
+    No description available.
+dlc_achieve_17
+    No description available.
+dlc_achieve_18
+    No description available.
+dlc_achieve_19
+    No description available.
+dlc_achieve_20
+    No description available.
+dlc_achieve_21
+    No description available.
+[unused]
+    This incident ID is unused.
+racer_achieve
+    No description available.
+dj_achieve
+    No description available.
+madrigal_achieve
+    No description available.
+pelican_phantom_achieve
+    No description available.
+errera_achieve
+    No description available.
+moa_burgers_achieve
+    No description available.
+secret_balcony_achieve
+    No description available.
+teddy_bear_achieve
+    No description available.
+hidden_banshees_achieve
+    No description available.
+tribute_room_achieve
+    No description available.
+bxr_mining_achieve
+    No description available.
+pre_game_start
+    Added in the Halo: The Master Chief Collection build of Halo: Reach. Apparently unused. Plays a "Training" announcer voiceover in the style of other gametype intro voice lines. Based on its name, it may have been intended for the Custom Game Browser.
+pre_game_over
+    Added in the Halo: The Master Chief Collection build of Halo: Reach. Apparently unused. Based on its name, it may have been intended for the Custom Game Browser.
+
+Firefight incidents
+
+survival_welcome
+    No description available.
+survival_new_set
+    No description available.
+survival_end_set
+    No description available.
+survival_new_round
+    No description available.
+survival_end_round
+    No description available.
+survival_new_wave
+    No description available.
+survival_end_wave
+    No description available.
+survival_bonus_round
+    No description available.
+survival_bonus_lives_awarded
+    No description available.
+survival_bonus_round_over
+    No description available.
+survival_awarded_lives
+    No description available.
+survival_awarded_weapon
+    No description available.
+survival_awarded_equipment
+    No description available.
+sur_cla_unsc_start
+    No description available.
+sur_cla_unsc_fail
+    No description available.
+sur_gen_unsc_start
+    No description available.
+sur_gen_unsc_fail
+    No description available.
+sur_gen_unsc_win
+    No description available.
+sur_unsc_timeout
+    No description available.
+sur_cla_cov_start
+    No description available.
+sur_cla_cov_fail
+    No description available.
+sur_gen_cov_start
+    No description available.
+sur_gen_cov_fail
+    No description available.
+sur_cov_win
+    No description available.
+sur_cov_timeout
+    No description available.
+gen_alpha_locked
+    Triggers the kill feed messages and announcer voiceovers for when Generator A is locked down by the defenders.
+gen_bravo_locked
+    Triggers the kill feed messages and announcer voiceovers for when Generator B is locked down by the defenders.
+gen_charlie_locked
+    Triggers the kill feed messages and announcer voiceovers for when Generator C is locked down by the defenders.
+survival_generator_destroyed
+    No description available.
+survival_round_over
+    No description available.
+survival_obj_complete
+    No description available.
+survival_obj_failed
+    No description available.
+survival_out_of_lives
+    No description available.
+survival_generator_lost
+    No description available.
+survival_alpha_under_attack
+    No description available.
+survival_bravo_under_attack
+    No description available.
+survival_charlie_under_attack
+    No description available.
+survival_spartans_win
+    No description available.
+survival_elites_win
+    No description available.
+survival_sudden_death_over
+    No description available.
+[unused]
+    This incident ID is unused.
+hero
+    Incident for the Hero medal.
+survival_last_man_standing
+    Plays the Firefight "Last man standing" voiceover (not to be confused with the Infection one) and shows the associated kill feed message, for the cause team.
+survival_skull_thunderstorm
+    Used to announce activation of the Thunderstorm skull.
+survival_skull_famine
+    Used to announce activation of the Famine skull.
+survival_skull_tilt
+    Used to announce activation of the Tilt skull.
+survival_skull_mythic
+    Used to announce activation of the Mythic skull.
+survival_skull_catch
+    Used to announce activation of the Catch skull.
+survival_skull_black_eye
+    Used to announce activation of the Black Eye skull.
+survival_skull_tough_luck
+    Used to announce activation of the Tough Luck skull.
+survival_skull_iron
+    Used to announce activation of the Iron skull.
+survival_skull_assassin
+    No description available.
+survival_skull_fog
+    Used to announce activation of the Fog skull.
+survival_skull_blind
+    No description available.
+survival_skull_superman
+    Intended to announce the activation of a skull (Cowbell?), but there's no kill feed message or announcer voiceover hooked up to the incident response.
+survival_skull_grunt_birthday_party
+    Used to announce activation of the Grunt Birthday Party skull. There is a kill feed message, but no voiceover.
+survival_skull_iwhbyd
+    Intended to announce the activation of the IWHBYD skull, but there's no kill feed message or announcer voiceover hooked up to the incident response.
+survival_skull_blue
+    Used to announce activation of the Blue skull defined by a custom Firefight game variant.
+survival_skull_yellow
+    Used to announce activation of the Yellow skull defined by a custom Firefight game variant.
+survival_skull_red
+    Used to announce activation of the Red skull defined by a custom Firefight game variant.
+survival_skulls_multiple
+    Plays the "Skulls on" announcer voiceover.
+survival_skull_single
+    Plays the "Skull on" announcer voiceover.
+survival_5_lives_left
+    Displays a kill feed message and plays an announcer voiceover telling the cause team that they have five lives left.
+survival_1_life_left
+    Displays a kill feed message and plays an announcer voiceover telling the cause team that they have one life left.
+survival_0_lives_left
+    Displays a kill feed message and plays an announcer voiceover telling the cause team that they have no lives left.
+survival_game_over
+    No description available.
+survival_5_ai_remaining
+    Displays a kill feed message and plays the "Five enemies remaining" voiceover for the cause team.
+survival_2_ai_remaining
+    Displays a kill feed message and plays the "Two enemies remaining" voiceover for the cause team.
+survival_1_ai_remaining
+    Displays a kill feed message and plays the "Last enemy" voiceover for the cause team.
+survival_reinforcements
+    Triggers the "Reinforcements" announcer voiceover.
+survival_skull_all
+    Unknown. This may have been meant to play a voiceover along the lines of, "All skulls on," but it specifies a non-existent game engine event (survival_skull_all).
+survival_skull_activation_finished
+    Bungie experimented with recording "bunched" announceover voiceovers for skull combinations, e.g. "Tilt and Famine on," but they quickly abandoned this idea, leaving only a few such voiceovers in the game files. They eventually settled for having the announcer read out the skulls one by one in separate voice lines, and then say, "on." This incident is responsible for triggering the "on" voiceover.
+survival_incredible_round
+    Unknown. The incident specifies a non-existent game engine event (survival_incredible_round).
+survival_superb_set
+    Unknown. The incident specifies a non-existent game engine event (survival_superb_set).
+survival_bonus_information
+    Unknown. The incident's game engine event specifies the cause team as its audience, but there's no kill feed text, sound, or anything else for the cause team to be an audience to.
+survival_next_round_timer
+    No description available.
+survival_next_set_timer
+    No description available.
+survival_bonus_skull_all
+    No description available.
+survival_10_in_a_row
+    No description available.
+survival_20_in_a_row
+    No description available.
+survival_30_in_a_row
+    No description available.
+survival_40_in_a_row
+    No description available.
+survival_50_in_a_row
+    No description available.
+survival_100_in_a_row
+    No description available.
+survival_500_in_a_row
+    No description available.
+survival_1000_in_a_row
+    No description available.
+survival_10_aura
+    Unknown. The incident is set to trigger automatically when a player causes 11 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_20_aura
+    Unknown. The incident is set to trigger automatically when a player causes 21 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_30_aura
+    Unknown. The incident is set to trigger automatically when a player causes 31 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_40_aura
+    Unknown. The incident is set to trigger automatically when a player causes 41 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_50_aura
+    Unknown. The incident is set to trigger automatically when a player causes 51 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_100_aura
+    Unknown. The incident is set to trigger automatically when a player causes 101 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_500_aura
+    Unknown. The incident is set to trigger automatically when a player causes 501 or more kill incidents without dying, but the incident doesn't define any responses.
+survival_1000_aura
+    Unknown. The incident is set to trigger automatically when a player causes 1001 or more kill incidents without dying, but the incident doesn't define any responses.
+team_generator_kill
+    Unknown. The incident has no data: it isn't automatically triggered, has no restrictions, and defines no responses.
+sur_airstrike_refill
+    Based on inspection of the incident data, this would play a Target Locator "ready" sound effect for the cause team.
+[unused]
+    This incident ID is unused.
+[unused]
+    This incident ID is unused.
+survival_mm_game_complete
+    The incident's response is limited to matchmade Firefight games, but the response doesn't do anything visible. The incident may be used internally.
+score_silver
+    Apparently linked to the Firestarter achievement, for getting 50,000 points in a Firefight game.
+score_gold
+    Apparently linked to the Blaze of Glory achievement, for getting 100,000 points in a Firefight game.
+score_onyx
+    Apparently linked to the Heat in the Pipe achievement, for getting 1,000,000 points in a Firefight game.
+mm_score_achieve
+    Apparently linked to the Score Attack achievement, for getting 15,000 points in Firefight Matchmaking.
+
+
+Object Type
+
+This type represents kinds of objects that can exist in the game world. It is roughly analogous to "base forms" in Skyrim.
+All types (unsorted)
+
+spartan (Spartan Biped)
+    A Spartan biped. Use a variant ID to control the armor permutation.
+elite (Elite Biped)
+    An Elite biped. Use a variant ID to control the armor permutation.
+monitor (Monitor Biped)
+    A Monitor biped. It spawns with a default weapon that behaves exactly like a Focus Rifle, but is invisible.
+flag (Flag)
+    A flag. It can be picked up by a player, carried, and used as a melee weapon.
+bomb (Bomb)
+    A UNSC bomb. It can be picked up by a player, carried, and used as a melee weapon.
+skull (Skull)
+    A skull. It can be picked up by a player, carried, and used as a melee weapon.
+hill_marker (Hill Marker)
+    An invisible hill marker, of the same variety as those placeable in Forge.
+flag_stand (Flag Stand)
+    A flag stand. It is not solid.
+capture_plate (Capture Plate)
+    A thick, olive drab plate of metal. It is not solid. It is typically used as a spawn or arming point for bombs.
+frag_grenade (Frag Grenade)
+    A fragmentation grenade that detonates shortly after bouncing off of a single surface.
+plasma_grenade (Plasma Grenade)
+    A plasma grenade that sticks to targets.
+spike_grenade (Spike Grenade)
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a spike grenade similar in design to a Stielhandgranate, which sticks to targets when thrown and unleashes a hail of spikes when detonating.
+firebomb_grenade (Firebomb Grenade)
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a firebomb which shatters upon impact and ignites the ground at the impact site.
+dmr (DMR)
+    A designated marksman rifle: the main precision weapon in Halo: Reach. Headshot-capable, with a scope for long-range combat and a fire rate appropriate for medium-range combat. It can also damage vehicles, though at the cost of a large amount of ammo.
+assault_rifle (Assault Rifle)
+    A fully-automatic assault rifle.
+plasma_pistol (Plasma Pistol)
+    A small Covenant pistol that fires green plasma bolts. It can be charged up to fire a very large plasma bolt accompanied by an EMP that disables vehicles and drains player shields.
+spiker (Spiker)
+    An automatic weapon introduced in Halo 3, created by the Brutes. It fires spikes that arc over a short distance due to gravity.
+smg (SMG)
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 2: a fully-automatic submachine gun with a high fire rate and very low accuracy.
+needle_rifle (Needle Rifle)
+    The Covenant counterpart to the DMR. Needle Rifles are capable of triggering deadly "supercombine" explosions if three shots hit an unshielded target. Unlike the DMR, however, they do effectively no damage to vehicles.
+plasma_repeater (Plasma Repeater)
+    The Covenant counterpart to the Assault Rifle. Unlike most Covenant weapons, the Plasma Repeater's cooldown can be initiated manually, akin to early reloading when using a human weapon.
+energy_sword (Energy Sword)
+    A Covenant melee weapon which generates a blade made of plasma. If Title Update 1 settings are enabled, then the only thing that can block a blow from an Energy Sword is another Energy Sword; if the relevant settings are not enabled, then any melee attack can block a sword swing.
+magnum (Magnum)
+    A large pistol designed for use by Spartans. It has a relatively fast fire rate compared to its Halo 3 counterpart, and it has a scope.
+needler (Needler)
+    A Covenant weapon which fires a series of needles that home in on their target. If enough needles enter an unshielded target, they will produce a deadly "supercombine" explosion.
+plasma_rifle (Plasma Rifle)
+    A fully-automatic Covenant weapon which fires plasma bolts.
+rocket_launcher (Rocket Launcher)
+    A rocket launcher. It can load up to two rockets at a time.
+shotgun (Shotgun)
+    A shotgun.
+sniper_rifle (Sniper Rifle)
+    A human sniper rifle. It has two levels of zoom, and can load four rounds at a time.
+brute_shot
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a weapon of Brute design, which fires large explosive shells.
+beam_rifle (Beam Focus Rifle)
+    This value seems to have been intended for Beam Rifles, but now it refers to Focus Rifles.
+spartan_laser (Spartan Laser)
+    A human weapon: a massive particle beam cannon which can fire four rounds. It has a long charge-up time, and its laser sight can give away its user's position and intent.
+gravity_hammer (Gravity Hammer)
+    A Covenant melee weapon which generates a powerful physics impuolse when swung.
+mauler
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a cross between a pistol and a shotgun, with a drum magazine.
+flamethrower
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a large flamethrower. In that game, it functioned like a detachable turret.
+missile_pod
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a large cannon capable of firing homing missiles at vehicles.
+warthog (Warthog)
+    A Warthog. Use a variant ID to select a specific variety of Warthog to spawn.
+ghost (Ghost)
+    A single-occupant Covenant vehicle capable of strafing and rapid boosting. It has two mounted plasma cannons.
+scorpion (Scorpion)
+    A tank, with a main cannon operable by the driver and an anti-infantry chaingun operable by a second occupant. I hear it beats everything.
+wraith (Wraith)
+    A Covenant tank, with a mortar launcher operable by the driver and an anti-infantry plasma turret operable by a second occupant.
+banshee (Banshee)
+    A single-occupant Covenant air vehicle equipped with a plasma cannon and a fuel rod bomb launcher.
+mongoose (Mongoose)
+    A two-seater ATV with no weapons.
+chopper
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a single-occupant Covenant vehicle armed with two cannons that fire explosive shells. The front of the vehicle was equipped with a large bladed wheel; boosting into enemy vehicles with it will usually destroy them instantly.
+prowler
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a four-seater Covenant vehicle analogous to the Warthog.
+hornet
+    This value is not used by the engine and will not spawn or match any object. A development leftover from Halo 3: a single-occupant human air vehicle, sometimes equipped with rails allowing two passengers to ride on the sides.
+stingray
+    This value is not used by the engine and will not spawn or match any object. A development leftover.
+heavy_wraith
+    This value is not used by the engine and will not spawn or match any object. A development leftover.
+falcon (Falcon)
+    A human air vehicle with two door guns operable by passengers.
+sabre
+    An UNSC space vehicle capable of housing a single occupant. Sabres are armed with a chaingun and lock-on missiles, and can perform evasive maneuvers similarly to a Banshee. In addition, they can rotate about the roll axis, allowing them to turn sideways or upside-down mid-flight. This maneuverability comes at a cost, however: like Banshees, Sabres have a constant forward thrust, but a Sabre moves faster and takes damage upon any impact with the environment.
+sprint (Sprint)
+    An Armor Ability that allows its user to sprint forward for short periods of time.
+jetpack (Jetpack)
+    An Armor Ability that allows its user to hover upwards for short periods of time.
+armor_lock (Armor Lock)
+    An Armor Ability that allows players to become completely invincible to all damage, reflect incoming projectiles including actual rockets fired from an actual rocket launcher directly back at the person firing them, for several seconds, while also releasing an EMP upon deactivation which disables vehicles and strips shields, all at the minor cost of immobilizing the user (but not their teammates) while activated.
+power_fist
+    This value is not used by the engine and will not spawn or match any object. A development leftover: a scrapped Armor Ability.
+active_camo_aa (Active Camo (Armor Ability))
+    An Armor Ability that allows its user to become invisible for short periods of time. The camouflage effect becomes significantly weaker if the user moves, and the ability also emits a radar jamming effect that can alert enemies to its use.
+ammo_pack
+    This value is not used by the engine and will not spawn or match any object. A development leftover: a scrapped Armor Ability.
+sensor_pack
+    This value is not used by the engine and will not spawn or match any object. A development leftover: a scrapped Armor Ability.
+revenant (Revenant)
+    A Covenant vehicle that can move like a Ghost, but has a miniaturized mortar launcher akin to a Wraith and a passenger seat akin to a Mongoose.
+pickup_truck (Pickup Truck)
+    A truck with two front seats and a large truck bed. This is the first land vehicle seen in Reach's campaign, in the Winter Contingency mission.
+focus_rifle (Focus Rifle)
+    A Covenant weapon that fires a weak particle beam.
+territory_static
+    A leftover from some point in development before Forge labels were designed and implemented. In Halo 3, a tag with this name was equivalent to a marker with Halo: Reach's TERR_OBJECT label. Curiously enough, it's defined on Powerhouse, and it reuses the Flag Stand model.
+ctf_flag_return_area
+    A leftover from some point in development before Forge labels were designed and implemented. In Halo 3, a tag with this name marked where flags needed to be delivered; Halo: Reach's Capture the Flag combines both the flag spawn point and the flag return point into a single CTF_FLAG_RETURN label. Curiously enough, this object is defined on Powerhouse, and it reuses the Capture Plate model.
+ctf_flag_spawn_point
+    A leftover from some point in development before Forge labels were designed and implemented. In Halo 3, a tag with this name marked where flags spawned; Halo: Reach's Capture the Flag combines both the flag spawn point and the flag return point into a single CTF_FLAG_RETURN label. Curiously enough, this object is defined on Powerhouse, and fittingly enough, it reuses the Flag Stand model.
+respawn_zone (Respawn Zone)
+    A respawn zone marker, of the same variety as those placeable in Forge.
+invasion_elite_buy
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented, and it may also be connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+invasion_elite_drop
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented, and it may also be connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+invasion_slayer
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented.
+invasion_spartan_buy
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented, and it may also be connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+invasion_spartan_drop
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented, and it may also be connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+invasion_spawn_controller
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented.
+oddball_ball_spawn_point
+    A leftover from some point in development before Forge labels were designed and implemented. In Halo 3, a tag with this name was equivalent to a marker with Halo: Reach's ODDBALL_BALL label. Curiously enough, this object is defined on Powerhouse, and looks identical to a Capture Plate.
+plasma_launcher (Plasma Launcher)
+    A Covenant weapon which can lock onto targets and fire up to four armed plasma grenades after charging up. These grenades home in on targets.
+fusion_coil (Fusion Coil)
+    A small human power source, shaped like a rectangular prism, sized 0.25 x 0.25 x 0.5 Forge units. It is explosive and will detonate when it receives too much damage.
+unsc_shield_generator
+    This value is not used by the engine and will not spawn or match any object. Unknown. This is not a Generator Defense generator; those use the internal name "generator_x_large".
+cov_shield_generator
+    This value is not used by the engine and will not spawn or match any object.
+initial_spawn_point (Initial Spawn Point)
+    A respawn point that is only used to spawn players in for the first time, at the start of a round.
+invasion_vehicle_req
+    This value is not used by the engine and will not spawn or match any object. A development leftover. This may be from development work on Invasion that was done before the Forge label system was implemented, and it may also be connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+vehicle_req_floor
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+wall_switch
+    This value is not used by the engine and will not spawn or match any object. This value does not correspond to any object defined in any existing map files, but based on its type, it was meant to be an interactable object of some kind.
+health_pack (Health Pack)
+    A health pack.
+req_unsc_laser
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_unsc_dmr
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_unsc_rocket
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_unsc_shotgun
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_unsc_sniper
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_covy_launcher
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_covy_needler
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_covy_sniper
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+req_covy_sword
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer.
+shock_loadout
+    This value is not used by the engine and will not spawn or match any object. This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+specialist_loadout
+    This value is not used by the engine and will not spawn or match any object. This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+assassin_loadout
+    This value is not used by the engine and will not spawn or match any object. This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+infiltrator_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+warrior_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+combatant_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+engineer_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+infantry_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+operator_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+recon_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+scout_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+seeker_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+airborne_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+ranger_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+req_buy_banshee
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_falcon
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_ghost
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_mongoose
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_revenant
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_scorpion
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_warthog
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+req_buy_wraith
+    This value is not used by the engine and will not spawn or match any object. A development leftover. Based on the name, it's connected to "requisitions," a scrapped development concept that seems to have been scaled down to make Invasion Slayer. Based on the tag type, you would have interacted with this object to make a purchase.
+fireteam_1_respawn_zone (Respawn Zone, Fireteam 1)
+    A special type of Respawn Zone defined on Boneyard. It can be seen in Forge on maps like Boneyard, but not edited.
+fireteam_2_respawn_zone (Respawn Zone, Fireteam 2)
+    A special type of Respawn Zone defined on Boneyard. It can be seen in Forge on maps like Boneyard, but not edited.
+fireteam_3_respawn_zone (Respawn Zone, Fireteam 3)
+    A special type of Respawn Zone defined on Boneyard. It can be seen in Forge on maps like Boneyard, but not edited.
+fireteam_4_respawn_zone (Respawn Zone, Fireteam 4)
+    This value is not used by the engine and will not spawn or match any object. As of this writing, no multiplayer maps define this tag; fireteam-specific respawn zones only go up to 3.
+semi_truck (Semi Truck)
+    A semi truck with no trailer attached. The ones placeable in Forge with the Thorage update have a truck bed attached, but the ones spawned in Megalo don't by default; as of this writing, 343 Industries would have to add a new variant ID for Megalo in order to make the truck bed available to scripts.
+soccer_ball (Soccer Ball)
+    A giant soccer ball, of the same variety as those placeable in Forge.
+golf_ball (Golf Ball)
+    A giant golf ball, of the same variety as those placeable in Forge.
+golf_ball_blue (Golf Ball, Blue)
+    This value is not used by the engine and will not spawn or match any object.
+golf_ball_red (Golf Ball, Red)
+    This value is not used by the engine and will not spawn or match any object.
+golf_club (Golf Club)
+    A reskinned Gravity Hammer which looks like a gigantic golf club.
+golf_cup (Golf Cup)
+    A golf cup with a holographic blue flag, surrounded by a circular patch of astroturf. The object has peculiar physics, with a magnetism effect near the cup; this is intended to help pull golf balls into the cup, but it also affects some other objects, including Mongooses.
+golf_tee
+    This value is not used by the engine and will not spawn or match any object.
+dice (Dice)
+    A giant six-sided die, of the same variety as those placeable in Forge. It is a muted green with white dots. The pivot point is on the "six" face, but is slightly off-center.
+covenant_crate (Covenant Crate)
+    This value is not used by the engine and will not spawn or match any object. Defined on some Firefight maps, including Overlook. It is a Covenant weapon crate. This same crate is available on some Multiplayer maps, including Forge World, but it uses a different tag, and Megalo is not set up to make that tag available to scripts.
+eradicator_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+saboteur_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+grenadier_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+marksman_loadout
+    This value is not used by the engine and will not spawn or match any object. Apparently a development leftover from an older implementation of loadouts.
+flare (Flare)
+    This value is not used by the engine and will not spawn or match any object. An unused scenery item; it is not a leftover of the Flare equipment item from Halo 3.
+glow_stick (Glowstick)
+    This value is not used by the engine and will not spawn or match any object. Defined on some Firefight maps, but doesn't appear to be defined in any Multiplayer maps.
+concussion_rifle (Concussion Rifle)
+    A Covenant weapon similar to the Brute Shot; it does less damage but has a greater physics impulse.
+grenade_launcher (Grenade Launcher)
+    A grenade launcher. Holding down the trigger delays the detonation of a fired grenade, and causes the grenade to release an EMP when it detonates.
+phantom_approach (phantom_approach)
+    A device machine with the Phantom model, suitable for scripted animation.
+hologram (Hologram)
+    An Armor Ability that sends out an illusory copy of the user. The copy "dies" after a short delay or if it takes too much damage.
+evade (Evade)
+    An Armor Ability that allows the user to perform high-speed dodge rolls.
+unsc_data_core (UNSC Data Core)
+    A UNSC data core, used as the "capture the flag" objective in Invasion: Boneyard. It can be picked up and carried by a player, reducing their speed and preventing them from attacking.
+danger_zone (Danger Zone)
+    Analysis of this object's map tag is inconclusive but suggests that it influences spawning when a shape is set on it.
+teleporter_sender
+    This is a Halo 3 sender-node teleporter, available as a development leftover and only defined on Boardwalk. Its default shape is a cylinder with radius 0.4, top 1, bottom 0.25. These teleporters spawn on channel Alpha and are interoperable with Halo: Reach-style teleporters placed in Forge, but there is no way to change the channel via script.
+teleporter_receiver
+    This is a Halo 3 receiver-node teleporter, available as a development leftover and only defined on Boardwalk. Its default shape is a cylinder with radius 0.4, top 1, bottom 0.25. These teleporters spawn on channel Alpha and are interoperable with Halo: Reach-style teleporters placed in Forge, but there is no way to change the channel via script.
+teleporter_2way
+    This value is not used by the engine and will not spawn or match any object. This would've been similar to teleporter_sender and teleporter_receiver — there is a leftover Halo 3 two-way-node teleporter in the game, available on Boardwalk — but Bungie mistyped the name when entering it into the Megalo object type list, so it isn't spawnable.
+data_core_beam
+    A device machine.
+phantom_overwatch (Phantom, Overwatch)
+    This value is not used by the engine and will not spawn or match any object.
+longsword (Longsword)
+    A relatively low-detail static model of a Longsword bomber. The tag is defined on Boneyard.
+particle_emitter_fire (Particle Emitter, Fire)
+    An invisible object which emits fire particles. This is purely a graphical effect and does no damage on its own.
+phantom_scenery (Phantom, Scenery)
+    A non-animated Phantom.
+pelican_scenery (Pelican, Scenery)
+    A non-animated Pelican.
+phantom (Phantom, Vehicle)
+    A Phantom. It's meant to be drivable, but only the Plasma Cannons on the side doors are operable by players, even with the "force into vehicle" script action.
+pelican (Pelican, Device)
+    A device machine with the Pelican model, suitable for scripted animation. It is used on Spire.
+armory_shelf
+    This value is not used by the engine and will not spawn or match any object. The object is defined on the "The Package" campaign level.
+covenant_resupply_capsule
+    This value is not used by the engine and will not spawn or match any object.
+covenant_drop_pod
+    An unfinished asset available on Boneyard. It is a small, untextured (i.e. flat grey) cylinder with an upward taper, about the diameter of a player model. It has no collision and no apparent function.
+invisible_marker
+    Defined on Penance, Powerhouse, Reflection, Sword Base, and Zealot. It resembles a flag stand when viewed in the HREK, but is defined to be invisible outside of Forge.
+respawn_zone_weak (Respawn Zone, Weak)
+    A respawn zone with a weak influence, of the same variety as those placeable in Forge.
+respawn_zone_weak_anti (Respawn Zone, Weak, Anti)
+    A respawn zone with a weak negative influence, of the same variety as those placeable in Forge.
+phantom_device (Phantom, Device)
+    A device machine with the Phantom model, suitable for scripted animation. It is used on Boneyard and Breakpoint.
+resupply_capsule
+    A drop pod for a single weapon, like those seen in Firefight; as of this writing, the object is only available on Anchor 9. Unfortunately, the pod is sealed, and there doesn't seem to be any way to open it. Its tag data suggests that it opens when it reaches 0% health, implying that Firefight opens it by using scripts to "kill" it; however, attempting to do the same with Megalo scripts produces no result.
+resupply_capsule_open
+    This value is not used by the engine and will not spawn or match any object. This tag is not defined even in Firefight maps, which define the "closed" variant. Examination of the "closed" variant's tags suggest that an explicit "open" variant shouldn't even be necessary.
+weapon_box
+    This value is not used by the engine and will not spawn or match any object. Defined on some Firefight maps, including Courtyard. It is a flat olive drab metal panel with UNSC branding that in Firefight can spawn with power weapons attached to it.
+tech_console_stationary
+    This value is not used by the engine and will not spawn or match any object.
+tech_console_wall
+    This value is not used by the engine and will not spawn or match any object.
+initial_loadout_camera (Initial Loadout Camera)
+    An object which defines a camera view that can be used during the initial loadout selection period at the start of a round. Note that the game doesn't anchor the camera to one of these markers when using it; it simply moves the camera to it. The distinction being made is that using scripts to move an Initial Loadout Camera marker will not animate the camera view being displayed.
+invisible_covenant_resupply_capsule (invis_cov_resupply_capsule)
+    This tag is defined on Boneyard, and inspection with third-party tools indicates that it takes the form of an invisible cube. Its function has yet to be tested in-game.
+covenant_power_core (Covenant Power Core)
+    A Covenant power core, used as the "capture the flag" objective in Invasion: Spire. It can be picked up and carried by a player, reducing their speed and preventing them from attacking.
+fuel_rod_gun (Fuel Rod Gun)
+    A Covenant heavy weapon that fires explosive fuel rods, which may bounce once depending on the angle at which they hit a surface.
+dropzone_boundary (dropzone_boundary)
+    This value is not used by the engine and will not spawn or match any object.
+shield_door_small (Shield Door, Small)
+    This value is not used by the engine and will not spawn or match any object. Defined on some Firefight maps, including Courtyard.
+shield_door_medium (Shield Door, Medium)
+    This value is not used by the engine and will not spawn or match any object. Defined on some Firefight maps, including Courtyard.
+shield_door_large (Shield Door, Large)
+    This value is not used by the engine and will not spawn or match any object. Defined on some Firefight maps, including Courtyard.
+drop_shield (Drop Shield)
+    An Armor Ability which allows the user to place a small bubble shield at their location.
+detached_machine_gun_turret (Machine Gun Turret, Detached)
+    An infantry-operable turret that has been detached from its stand. It has a finite ammo supply and cannot be refilled. It can be carried in addition to a primary and secondary weapon, but will slow its user's movement.
+machine_gun_turret (Machine Gun Turret)
+    An infantry-operable turret mounted on a stand. While mounted, the turret has unlimited ammo but cannot be moved; if the stand is broken, the turret can be carried but will have a finite ammo supply.
+detached_plasma_cannon (Plasma Cannon, Detached)
+    An infantry-operable turret that has been detached from its stand. It has a finite ammo supply and cannot be refilled. It can be carried in addition to a primary and secondary weapon, but will slow its user's movement.
+plasma_cannon (Plasma Cannon)
+    An infantry-operable turret mounted on a stand. While mounted, the turret has unlimited ammo but cannot be moved; if the stand is broken, the turret can be carried but will have a finite ammo supply.
+shade (Shade Turret)
+    A Covenant turret emplacement.
+cargo_truck (Cargo Truck)
+    This value is not used by the engine and will not spawn or match any object.
+electric_cart (Electric Cart)
+    An electric cart with no armaments.
+forklift (Forklift)
+    A drivable forklift.
+military_truck
+    This value is not used by the engine and will not spawn or match any object.
+oni_van (ONI Van)
+    A huge black van with a driver and passenger seat. It is fairly slow.
+warthog_turret (Warthog Turret, Normal)
+    A Warthog rear chaingun, separate from the Warthog itself.
+warthog_turret_gauss (Warthog Turret, Gauss)
+    A Warthog rear gauss turret, separate from the Warthog itself.
+warthog_turret_rocket (Warthog Turret, Rocket)
+    A Warthog rear rocket turret, separate from the Warthog itself.
+scorpion_turret_anti_infantry (Scorpion Turret, Chaingun)
+    A Scorpion's anti-infantry chaingun, separate from the Scorpion itself.
+falcon_turret_grenade_left (Falcon Turret, Grenade Left)
+    A Falcon's left-side door-gun grenade launcher, separate from the Falcon itself.
+falcon_turret_grenade_right (Falcon Turret, Grenade Right)
+    A Falcon's right-side door-gun grenade launcher, separate from the Falcon itself.
+wraith_turret_anti_infantry (Wraith Turret, Anti-Infantry)
+    A Wraith's anti-infantry plasma turret, separate from the Wraith itself.
+landmine (Land Mine)
+    A landmine.
+target_locator (Target Locator)
+    A Target Locator capable of calling down a devastating air strike. This weapon will only spawn on maps that define its tag.
+kill_boundary_3d_model
+    This value is not used by the engine and will not spawn or match any object. Internally, a tag named "ff_kill_zone" is used for the (Soft) Kill Boundary's 3D model, but not for the actual object.
+block_1x1_flat (Block 1x1 Flat)
+    A Block 1x1 Flat, of the same variety as those placeable in Forge.
+shade_gun_anti_air (Shade Turret Gun, Anti-Air)
+    The "gun" part of a Shade turret; the base is not included. This variant fires devastatingly powerful shots at a high rate. Shields protect its operator.
+shade_gun_fuel_rod (Shade Turret Gun, Fuel Rod)
+    The "gun" part of a Shade turret; the base is not included. This variant fires fuel rods.
+shade_gun_plasma (Shade Turret Gun, Plasma)
+    The "gun" part of a Shade turret; the base is not included.
+kill_ball (Kill Ball)
+    A Kill Ball, of the same variety as those placeable in Forge.
+light_red (Forge Light (Red))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_blue (Forge Light (Blue))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_green (Forge Light (Green))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_orange (Forge Light (Orange))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_purple (Forge Light (Purple))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_yellow (Forge Light (Yellow))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_white (Forge Light (White))
+    A light emitter, of the same variety as those placeable in Forge. Scaling this object will resize the visible "ball" of light, but will not change the brightness or radius of the emitted light.
+light_red_flashing (Forge Light (Flashing Red))
+    A flashing light emitter, of the same variety as those placeable in Forge.
+light_yellow_flashing (Forge Light (Flashing Yellow))
+    A flashing light emitter, of the same variety as those placeable in Forge.
+fx_colorblind (FX (Colorblind))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_gloomy (FX (Gloomy))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_juicy (FX (Juicy))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_nova (FX (Nova))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_olde_timey (FX (Olde Timey))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_pen_and_ink (FX (Pen And Ink))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_purple (FX (Purple))
+    A Forge filter that covers the screen in a deep purple overlay, similar to the lighting in the Nightfall mission.
+fx_orange (FX (Orange))
+    A screen FX object, of the same variety as those placeable in Forge.
+fx_green (FX (Green))
+    A Forge filter that covers the screen in a grimy, green overlay, with small visual distortions away from the center. This filter affects the UI, and it can stack; spawning too many of it will blind all players.
+grid (Grid)
+    A glowing blue platform with a grid texture, of the same variety as those placeable in Forge. The platform is square, and each side is 30 Forge units long; on Tempest, a single grid placed at the center of the map can reach from one base's frontmost man cannon to the other base's frontmost man cannon.
+sound_emitter_alarm_1 (Invisible Cube of Alarming 1)
+    An invisible object which emits an alarm sound. The emitter may be silent by default; call set_scenario_interpolator_state(1, 1) to make it audible, and set_scenario_interpolator_state(1, 0) to silence it again.
+sound_emitter_alarm_2 (Invisible Cube of Alarming 2)
+    An invisible object which emits an alarm sound. The emitter may be silent by default; call set_scenario_interpolator_state(2, 1) to make it audible, and set_scenario_interpolator_state(2, 0) to silence it again.
+safe_boundary (Safe Boundary)
+    A Safe Boundary, of the same variety as those placeable in Forge. Players who remain outside of all extant Safe Boundaries will be killed.
+soft_safe_boundary (Soft Safe Boundary)
+    A Soft Safe Boundary, of the same variety as those placeable in Forge. Players who remain outside of all extant Soft Safe Boundaries for longer than ten seconds will be killed.
+kill_boundary (Kill Boundary)
+    A Kill Boundary, of the same variety as those placeable in Forge. Players who enter its shape will be killed instantly.
+soft_kill_boundary (Soft Kill Boundary)
+    A Soft Kill Boundary, of the same variety as those placeable in Forge. Players who remain inside of its shape for longer than ten seconds will be killed.
+unsc_data_core_holder (UNSC Data Core Holder)
+    The Invasion: Boneyard prop which holds the UNSC Data Core used as an objective in Phase 3.
+covenant_power_module_stand (Covenant Power Module Stand)
+    The Invasion: Spire prop linked to the Phase 1 territories.
+covenant_bomb (Covenant Bomb)
+    The Covenant bomb used in Invasion: Breakpoint. Like the UNSC bomb, it can be picked up and carried.
+heavy_barrier (Heavy Barrier)
+    A massive steel barricade. This object was originally only available on Breakpoint, but the Thorage update has made it usable on Forge World.
+breakpoint_bomb_door (dlc_invasion_bomb_door)
+    A massive metal wall. It is usable on Forge World, but as of this writing I'm not sure yet whether it will be included in Thorage.
+
+
+Player Set
+
+This type represents a group of players, defined relative to some object or player's affiliation. The following values are supported:
+
+no_one
+    Set the relevant group of players to nobody.
+everyone
+    Set the relevant group of players to everybody.
+allies
+    Set the relevant group of players to all allied players.
+enemies
+    Set the relevant group of players to all enemy players.
+default
+    Unknown.
+mod_player
+    Modifies whether a single player is in the player set. You must pass two additional arguments: a player variable, and a number or number variable. If the number is 0, then the player will be removed from the set; otherwise the player will be added.
+
+
+Sound
+
+This type represents sounds available to the Megalo script engine.
+All sounds (unsorted)
+
+announce_slayer
+    Announcer dialogue for Slayer: the gametype name announced at the start of the match.
+announce_ctf
+    Announcer dialogue for Capture the Flag: the gametype name announced at the start of the match.
+announce_ctf_captured
+    Announcer dialogue for Capture the Flag: when the flag is captured.
+announce_ctf_dropped
+    Announcer dialogue for Capture the Flag: when the flag is dropped.
+announce_ctf_recovered
+    Announcer dialogue for Capture the Flag: when the flag is recovered.
+announce_ctf_reset
+    Announcer dialogue for Capture the Flag: when the flag is reset.
+announce_ctf_stolen
+    Announcer dialogue for Capture the Flag: when your team's flag is stolen.
+announce_ctf_taken
+    Announcer dialogue for Capture the Flag: when your team takes the enemy flag.
+announce_vip
+    Announcer dialogue for VIP: the gametype name announced at the start of the match.
+announce_vip_new
+    Announcer dialogue for VIP: when a player receives VIP status. "New VIP." 
+announce_vip_killed
+    Announcer dialogue for VIP: when a VIP is killed. "VIP killed." 
+announce_juggernaut
+    Announcer dialogue for Juggernaut: the gametype name announced at the start of the match.
+announce_juggernaut_new
+    Announcer dialogue for Juggernaut: when a player receives Juggernaut status.
+announce_territories
+    Announcer dialogue for Territories: the gametype name announced at the start of the match.
+announce_territories_captured
+    Announcer dialogue for Territories: when a territory is captured.
+announce_territories_lost
+    Announcer dialogue for Territories: when your team loses a territory.
+announce_assault
+    Announcer dialogue for Assault: the gametype name announced at the start of the match.
+announce_assault_armed
+    Announcer dialogue for Assault: when a bomb is armed.
+announce_assault_detonated
+    Announcer dialogue for Assault: when a bomb is detonated.
+announce_assault_disarmed
+    Announcer dialogue for Assault: when a bomb is disarmed.
+announce_assault_dropped
+    Announcer dialogue for Assault: when a bomb is dropped.
+announce_assault_reset
+    Announcer dialogue for Assault: when a bomb is reset.
+announce_assault_returned
+    Announcer dialogue for Assault: when a bomb is returned.
+announce_assault_taken
+    Announcer dialogue for Assault: when a bomb is taken.
+announce_infection
+    Announcer dialogue for Infection: the gametype name announced at the start of the match.
+announce_infection_infected
+    Announcer dialogue for Infection: when you are infected and join the zombie team. "Infected." 
+announce_infection_last_man
+    Announcer dialogue for Infection: when you become the Last Man Standing. "Last man standing." 
+announce_infection_new_zombie
+    Announcer dialogue for Infection: when a player becomes a zombie. "New zombie." 
+announce_oddball
+    Announcer dialogue for Oddball: the gametype name announced at the start of the match.
+announce_oddball_play
+    Announcer dialogue for Oddball. "Play ball." 
+announce_oddball_taken
+    Announcer dialogue for Oddball: when the ball is taken. "Ball taken." 
+announce_oddball_dropped
+    Announcer dialogue for Oddball: when the ball is dropped. "Ball dropped." 
+announce_oddball_reset
+    Announcer dialogue for Oddball: when the ball is reset. "Ball reset." 
+announce_koth
+    Announcer dialogue for King of the Hill: the gametype name announced at the start of the match.
+announce_koth_controlled
+    Announcer dialogue for King of the Hill: when your team takes control of the hill. "Hill controlled." 
+announce_koth_contested
+    Announcer dialogue for King of the Hill: when the hill is contested. "Hill contested." 
+announce_koth_moved
+    Announcer dialogue for King of the Hill: when the hill is moved. "Hill moved." 
+announce_headhunter
+    Announcer dialogue for Headhunter: the gametype name announced at the start of the match.
+announce_stockpile
+    Announcer dialogue for Stockpile: the gametype name announced at the start of the match.
+announce_race
+    Announcer dialogue for Race: the gametype name announced at the start of the match.
+announce_defense
+    Generic announcer dialogue informing the player that they're on Defense this round. "Defense." 
+announce_offense
+    Generic announcer dialogue informing the player that they're on Defense this round. "Offense." 
+announce_destination_moved
+    Generic announcer dialogue informing the player that their destination or goal has moved. "Destination moved." 
+announce_assault_armed_2
+    Announcer dialogue for Assault: when a bomb is armed. This is identical to the non-suffixed enum value; it uses the same underlying sound tag.
+announce_assault_armed_3
+    Announcer dialogue for Assault: when a bomb is armed. This is identical to the non-suffixed enum value; it uses the same underlying sound tag.
+announce_assault_disarmed_2
+    Announcer dialogue for Assault: when a bomb is armed. This is identical to the non-suffixed enum value; it uses the same underlying sound tag.
+announce_assault_disarmed_3
+    Announcer dialogue for Assault: when a bomb is armed. This is identical to the non-suffixed enum value; it uses the same underlying sound tag.
+announce_sudden_death
+    Generic announcer dialogue informing the player that the Sudden Death period has begun.
+announce_game_over
+    Generic announcer dialogue informing the player that the match has ended.
+inv_boneyard_vo_covenant_p3_loss
+    Voiceover for the Covenant played when the match is lost during Phase 3. "No! The humans deny us our rightful victory!" 
+inv_boneyard_vo_covenant_p1_loss
+    Voiceover for the Covenant played when the match is lost during Phase 1. "The fleetmaster will be displeased to hear of this failure!" 
+inv_boneyard_vo_covenant_p1_intro
+    Voiceover for the Covenant played at the start of Phase 1. "Take control of the access points. We will gain entry to the humans' base." 
+inv_boneyard_vo_covenant_p1_win
+    Voiceover for the Covenant played upon winning Phase 1. "Well done. Push forward and crush the human defenses." 
+inv_boneyard_vo_covenant_p2_loss
+    Voiceover for the Covenant played when the match is lost during Phase 2. "The humans battle fiercely to protect this location. What is inside?" 
+inv_boneyard_vo_covenant_p2_win
+    Voiceover for the Covenant played upon winning Phase 2. "The human object is open. Retrieve it for extraction!" 
+inv_boneyard_vo_covenant_p3_win
+    An unused voiceover for the Covenant, apparently meant to be played at the start of a fourth phase, in which the Covenant must wait for evac. "Defend this location, brothers. Our Phantom will soon arrive to retrieve the object." 
+inv_boneyard_vo_covenant_win
+    Voiceover for the Covenant played upon winning Phase 3. "Yes, brothers! Now we will take this battle to the humans' homeworld!" 
+inv_boneyard_vo_spartan_p3_loss
+    Voiceover for the Spartans played when the match is lost during Phase 3. "Navigation core compromised; we lost it. Alert Command." 
+inv_boneyard_vo_spartan_p1_intro
+    Voiceover for the Spartans played at the start of Phase 1. "Securing this position is priority one, Spartans. Hold off any attack." 
+inv_boneyard_vo_spartan_p1_win
+    Voiceover for the Spartans played upon winning Phase 1. "Nice work, Spartans. They know their place." 
+inv_boneyard_vo_spartan_p2_intro
+    Voiceover for the Spartans played at the start of Phase 2. "Fall back, to the refinery! Don't let the Covenant get hold of the navigation core." 
+inv_boneyard_vo_spartan_p2_win
+    Voiceover for the Spartans played upon winning Phase 2. "Well done, Spartans! The core is secure." 
+inv_boneyard_vo_spartan_p3_intro
+    Voiceover for the Spartans played at the start of Phase 3. "Core enclosure is breached! Don't let the Covenant escape with it." 
+inv_boneyard_vo_spartan_p3_win
+    Voiceover for the Spartans played upon winning Phase 3. "Outstanding, Spartans! Air support'll clean up the mess." 
+inv_spire_vo_covenant_loss
+    Voiceover for the Covenant played when the match is lost. "You've lost the power core. This will not go unpunished." 
+inv_spire_vo_covenant_p1_win
+    Voiceover for the Covenant played upon winning Phase 1. "Well done, my brothers! The humans suffer another defeat today." 
+inv_spire_vo_covenant_p1_intro
+    Voiceover for the Covenant played at the start of Phase 1. "Hold fast, brothers. Do not let the humans pass!" 
+inv_spire_vo_covenant_p2_intro
+    Voiceover for the Covenant played at the start of Phase 2. "Return to the spire, brothers. The humans must not deactivate our shield!" 
+inv_spire_vo_covenant_p2_win
+    Voiceover for the Covenant played upon winning Phase 2. "Well done, brothers. These humans are no match for the Covenant's might!" 
+inv_spire_vo_covenant_p3_intro
+    Voiceover for the Covenant played at the start of Phase 3. "No! The humans have activated the spire. They cannot steal our power core!" 
+inv_spire_vo_covenant_p3_win
+    Voiceover for the Covenant played upon winning Phase 3. "Yes, brothers! Well done! The humans have learned a harsh lesson!" 
+inv_spire_vo_spartan_p3_loss
+    An unused voiceover for the Covenant, apparently meant to be played at the start of a fourth phase, in which the Spartans must wait for evac. "Damn! The humans have sent for air transport. Do not let them escape!" 
+inv_spire_vo_spartan_p1_loss
+    Voiceover for the Spartans played when the match is lost during Phase 1. "Time for a backup plan... Fall back and regroup." 
+inv_spire_vo_spartan_p1_extra
+    An unused voiceover for the Spartans, apparently meant to be played at some point during Phase 1. "Maintain control of that platform, Spartans!" 
+inv_spire_vo_spartan_p1_intro
+    Voiceover for the Spartans played at the start of Phase 1. "Capture the access points, Spartans. Bring down the barriers." 
+inv_spire_vo_spartan_p1_win
+    Voiceover for the Spartans played upon winning Phase 1. "Nice work, Spartans. Infiltrate their tower!" 
+inv_spire_vo_spartan_p2_loss
+    Voiceover for the Spartans played when the match is lost during Phase 2. "Damn split-jaws won't give up that tower easy. We need a new strategy." 
+inv_spire_vo_spartan_p2_win
+    Voiceover for the Spartans played upon winning Phase 2. "The spire's power core is up at the top! Get it to the extraction point." 
+inv_spire_vo_spartan_p3_win
+    An unused voiceover for the Spartans, apparently meant to be played at the start of a fourth phase, in which the Spartans must wait for evac. "Pelican is on approach. Secure that LZ." 
+inv_spire_vo_spartan_win
+    Voiceover for the Spartans played upon winning Phase 3. "Outstanding, Spartans. We have the package. Let's move." 
+inv_boneyard_vo_spartan_p4_start
+    An unused voiceover for the Spartans, apparently meant to be played at the start of a fourth phase, in which the Covenant must wait for evac. "Phantom on approach; do not let them get that core on board, Spartans!" 
+inv_spire_vo_covenant_p4_start
+    An unused voiceover for the Covenant, apparently meant to be played at the start of a fourth phase, in which the Spartans must wait for evac. "Damn! The humans have sent for air transport! Do not let them escape!" 
+inv_cue_covenant_win_big
+    A musical cue suitable for a Covenant round victory.
+inv_cue_covenant_win_1
+    A brief musical cue, suitable for a Covenant-Offense Phase 1 victory.
+inv_cue_covenant_win_2
+    A brief musical cue, suitable for a Covenant-Offense Phase 2 victory.
+unused_87
+    An undefined/null sound effect.
+inv_cue_spartan_win_big
+    A musical cue suitable for a Spartan round victory.
+inv_cue_spartan_win_1
+    A brief musical cue, suitable for a Spartan-Offense Phase 1 victory.
+inv_cue_spartan_win_2
+    A brief musical cue, suitable for a Spartan-Offense Phase 2 victory.
+boneyard_generator_power_down
+    A sound effect originally intended to indicate a generator on Boneyard powering down; it is instead used as the "goal scored" sound effect in Skeeball.
+reinforcements
+firefight_lives_added
+    In the original Xbox 360 version of Halo: Reach, this sound name is expected to be announcer dialogue for Firefight played when players are awarded more lives. In the current Master Chief Collection version of Halo: Reach, this sound name should play Firefight's "Reinforcements" announcer dialogue. You can refer to the sound by either name, but which sound plays will depend on where and how your game variant is being played.
+timer_beep
+    The beep used for the respawn timer.
+announce_a_under_attack
+    Generic announcer dialogue for Firefight: when a territory or generator designated "A" is under attack. "Alpha under attack!" 
+announce_b_under_attack
+    Generic announcer dialogue for Firefight: when a territory or generator designated "B" is under attack. "Bravo under attack!" 
+announce_c_under_attack
+    Generic announcer dialogue for Firefight: when a territory or generator designated "C" is under attack. "Charlie under attack!" 
+
+
+Variant ID
+
+Variant IDs are predefined values that can be used to specify an object variation, when creating objects, or an animation name, when working with "device machines."
+
+You may use any of the values below, or you may use the value none to use the default ID for the object in question.
+Animations
+
+mp_boneyard_a_idle_start
+    An animation name for Phantom models.
+mp_boneyard_a_fly_in
+    An animation name for Phantom models.
+mp_boneyard_a_idle_mid
+    An animation name for Phantom models.
+mp_boneyard_a_fly_out
+    An animation name for Phantom models.
+mp_boneyard_b_fly_in
+    An animation name for Phantom models.
+mp_boneyard_b_idle_mid
+    An animation name for Phantom models.
+mp_boneyard_b_fly_out
+    An animation name for Phantom models.
+mp_boneyard_b_idle_start
+    An animation name for Phantom models.
+mp_boneyard_a_leave1
+    An animation name for Phantom models.
+mp_boneyard_b_leave1
+    An animation name for Phantom models.
+mp_boneyard_b_pickup
+    An animation name for Phantom models.
+mp_boneyard_b_idle_pickup
+    An animation name for Phantom models.
+mp_boneyard_a
+    An animation name for Phantom models.
+mp_boneyard_b
+    An animation name for Phantom models.
+mp_spire_fp
+    An animation name for Pelican models.
+
+Object variants
+
+default
+    Specifies an object's default variant.
+carter
+    A variant name for Spartan bipeds; produces a male Spartan with Noble 1 (Carter)'s armor.
+jun
+    A variant name for Spartan bipeds; produces a male Spartan with Noble 3 (Jun)'s armor.
+female
+    A variant name for Spartan bipeds; produces a female Spartan with default armor.
+male
+    A variant name for Spartan bipeds; produces a male Spartan with default armor.
+emile
+    A variant name for Spartan bipeds; produces a male Spartan with Noble 4 (Emile)'s armor.
+player_skull
+    A variant name for Spartan bipeds; produces a male Spartan with the Hazop helmet and CBRN, CQC shoulders, trauma kit, and FJ/PARA knee guards. (Bungie used the name "player_skull" internally for the CQC shoulders and Hazop helmet.)
+kat
+    A variant name for Spartan bipeds; produces a female Spartan with Noble 2 (Kat)'s armor.
+minor
+    A variant name for Elite bipeds; produces Elite Minor armor.
+officer
+    A variant name for Elite bipeds; produces Elite Officer armor.
+ultra
+    A variant name for Elite bipeds; produces Elite Ultra armor.
+space
+    A variant name for Elite bipeds and Jetpacks. When used on Elites, it produces Elite Ranger armor. When used on Jetpacks, it produces the white Covenant Jetpacks seen in Campaign.
+spec_ops
+    A variant name for Elite bipeds; produces Elite Spec Ops armor.
+general
+    A variant name for Elite bipeds; produces Elite General armor.
+zealot
+    A variant name for Elite bipeds; produces Elite Zealot armor.
+mp
+    A variant name for Elite bipeds; produces a random armor set.
+jetpack
+    A variant name for Elite bipeds; produces Elite Ranger armor.
+gauss
+    A variant name for standard Warthogs only. When applied to a standard Warthog, produces a Gauss Warthog instead.
+troop
+    A variant name for standard Warthogs only. When applied to a standard Warthog, produces a Troop Transport Warthog instead.
+rocket
+    A variant name for standard Warthogs only. When applied to a standard Warthog, produces a Rocket Warthog instead.
+none_variant
+    A variant name for standard Warthogs only. When applied to a standard Warthog, produces a Warthog with no turret.
+destroyed
+    Produces a destroyed vehicle. Support varies across vehicle types, and in some cases, the "destroyed" effect may only be cosmetic (i.e. the vehicle may be fully operational, and it may be possible to "destroy" it for real).
+damaged
+    Produces a damaged vehicle. Support varies across vehicle types; as of this writing, it only works on Pelicans.
+no_sideguns
+    A variant name for Falcons; produces a Falcon with no side chainguns.
+grenade
+    A variant name for Falcons; produces a Falcon with grenade launchers instead of side chainguns.
+multiplayer
+    A variant name for Falcons; produces a Falcon with no main turret, and no extra seats besides the side chainguns.
+no_side_turrets
+    A variant name for Phantoms; produces a Phantom with no door guns.
+no_turrets
+    A variant name for Phantoms; produces a Phantom with no door guns or main turret.
+no_chin_gun
+    A variant name for Phantoms; produces a Phantom with no main turret.
+bed_long
+    A variant name for civilian semi trucks. When applied to one, produces a semi truck with a long truck bed.
+bed_long_container
+    A variant name for civilian semi trucks. When applied to one, produces a semi truck with a long trailer.
+bed_long_tanker
+    A variant name for civilian semi trucks. When applied to one, produces a semi truck with a long tanker.
+bed_small
+    A variant name for civilian semi trucks. When applied to one, produces a semi truck with a small truck bed.
+bed_small_container
+    A variant name for civilian semi trucks. When applied to one, produces a semi truck with a small trailer.
+bed_small_tanker
+    A variant name for civilian semi trucks. When applied to one, produces a semi truck with a small tanker.
+plasma_cannon
+    A variant name for Shade turrets; produces a turret that fires plasma rounds (the default).
+flak_cannon
+    A variant name for Shade turrets; produces a turret that fires fuel rods.
+auto
+    A variant name for Shade turrets; produces a turret with the seat enclosed in a shielded barrier.
+noblade
+    A variant name for Energy Swords; produces a sword with no visible blade. The sword otherwise functions as normal.
+
+Unknown values
+
+fr
+    Unknown.
+pl
+    Unknown.
+35_spire_fp
+    Unknown.
+
+Notes
+
+The list of variant IDs available to Megalo is defined in a *.MAP file's msit tag. Objects can define named variants in their hlmt tags, while model animation data (including named animations) is defined in jmad tags.
+
+Waypoint Icon
+
+The following is a list of icon names. Note that you can also use the word none to denote no icon, or the integer index of an icon.
+
+speaker
+    A loudspeaker, like that shown next to players' names in voice chat.
+dead_teammate_marker
+    An "X" shape, like that used to mark where teammates have died.
+lightning_bolt
+    This is supposed to be a lightning bolt, but in tests, it was blank.
+bullseye
+    A bullseye.
+diamond
+    A filled-in diamond shape.
+bomb
+    A bomb, identical to the one used as Assault's gametype icon.
+flag
+    A flag, identical to the one used as Capture the Flag's gametype icon.
+skull
+    A skull, identical to the one used as Oddball's gametype icon.
+crown
+    A crown, identical to the one used as King of the Hill's gametype icon.
+vip
+    The gametype icon for VIP.
+padlock
+    A closed padlock.
+territory_a
+    If you use this value, then you must pass a number variable or integer constant as an additional argument. The lowest significant digit of that numeric value will be displayed as the icon (e.g. 15 will display as "5").
+territory_b
+    Displays the number 2.
+territory_c
+    Displays the number 3.
+territory_d
+    Displays the number 4.
+territory_e
+    Displays the number 5.
+territory_f
+    Displays the number 6.
+territory_g
+    Displays the number 7.
+territory_h
+    Displays the number 8.
+territory_i
+    Displays the number 9.
+supply
+    Line art depicting a cube.
+supply_health
+    A downward-pointing triangle outline with a circle drawn in the middle.
+supply_air_drop
+    A small box suspended from a parachute.
+supply_ammo
+    Three bullets lined up horizontally in a row, inside a square.
+arrow
+    An arrow pointing top-left. The "tail" of the arrow bends to form a circle wrapping around the arrow.
+defend
+    An icon indicating that a location should be defended: the outline of a shield, with a diagonal line crossing its interior.
+ordnance
+    An icon indicating that a location should be attacked or acquired: a downward-pointing arrow and, beneath it, a downward chevron that it points into.
+attack
+    Compiles to the same icon as ordnance.
+inward
+    Inward-pointing triangular arrows, not unlike those displayed and animated when a player is waiting to respawn on you during co-op spawning.
+
+
+HUD Widget
+
+A script-defined HUD widget.
+Member actions
+
+set_icon
+
+    Set the HUD widget's icon.
+set_meter_params
+
+    Set the HUD widget's meter parameters.
+set_text
+
+    Set the HUD widget's text.
+set_value_text
+
+    Set the HUD widget's value text.
+set_visibility
+
+    Control whether a player can see this HUD widget.
+
+
+HUD Widget Icon
+
+The following is a list of icon names usable in HUD widgets. Note that you can also use the word none to remove a widget's icon, or the integer index of an icon.
+
+flag
+    A flag, identical to the one used as Capture the Flag's gametype icon.
+slayer
+    The icon for the Slayer gametype.
+oddball
+    A skull, identical to the one used as Oddball's gametype icon.
+koth
+    The icon for the King of the Hill gametype.
+juggernaut
+    The icon for the Juggernaut gametype.
+territories
+    The icon for the Territories gametype.
+assault
+    The icon for the Assault gametype.
+infection
+    The icon for the Infection gametype.
+vip
+    The icon for the VIP gametype.
+invasion
+    The icon for the Invasion gametype.
+invasion_slayer
+    The icon for the Invasion Slayer gametype.
+stockpile
+    The icon for the Stockpile gametype.
+action_sack
+    An Action Sack icon.
+race
+    The icon for the Race gametype.
+rocket_race
+    The icon for the Rocket Hog Race gametype.
+grifball
+    The icon for the Grifball gametype.
+soccer
+    A soccer ball.
+headhunter
+    The icon for the Headhunter gametype.
+crosshair
+    A crosshair encircled by a spiky circular shape.
+wheel
+    A tire surrounded by feathers.
+swirl
+    A swirl icon — the same icon used for what is called "Insane" in legacy Reach and "Action Sack" in MCC.
+bunker
+    A drawing of a small pillbox bunker, with stylized zoom lines around it.
+health_pack
+    A small plus-sign inscribed in a hexagon.
+castle_defense
+    A filled-in shield shape, with the silhouette of a castle tower cut out of the middle.
+return
+    An arrow pointing bottom-left. The tail of the arrow bends to the left and then around the arrow, forming a box which encloses the arrow.
+shapes
+    Line art of 3D geometric shapes.
+cartographer
+    The insignia for the Silent Cartographer.
+eight_ball
+    A drawing of an eight ball, of the variety seen in billiards.
+noble
+    The Noble Team insignia.
+covenant
+    A Covenant insignia.
+attack
+    A rounded diamond shape, inside of which is a downward-pointing arrow. Beneath the arrow, between it and the diamond, is a bent line following the diamond's shape.
+defend
+    A shield with a diagonal crossbar, all wrapped in a circle.
+ordnance
+    Line-art of a 3D cube, wrapped in a broader outline.
+circle
+    A downward-pointing triangle outline with a small circle drawn inside.
+recon
+    A rounded rectangle, with a targeting reticle drawn inside: four corners of a non-rounded rectangle, and a plus symbol at the center.
+recover
+    An upward-pointing triangle. Inside of this is an arrow pointing top-left; the "tail" of the arrow bends to form a circle wrapping around the arrow.
+ammo
+    Three bullets lined up horizontally in a row, inside a square.
+skull
+    A skull icon, of the variety seen in Campaign and Firefight.
+forge
+    The icon for Forge: a hammer (more like a gavel, actually) slamming down onto an anvil, emitting stylized sparks.
+

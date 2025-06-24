@@ -1,0 +1,20 @@
+-- implements a warthog with a truck bed hanging off the back
+
+alias spawned_object = object.object[0]
+alias tempobj0 = temporaries.object[0]
+for each object with label "warthog_mod" do
+    if current_object.spawned_object == no_object then
+        current_object.spawned_object = current_object.place_at_me(warthog, none, absolute_orientation, 0, 0, 0, none_variant)
+        tempobj0 = current_object.place_at_me(semi_truck, none, absolute_orientation, 0, 0, 0, bed_small)
+        for each object do
+            tempnum0 = current_object.get_distance_to(tempobj0)
+            if tempnum0 == 23 then
+                current_object.detach()
+                current_object.attach_to(current_object.spawned_object, -16, 0, 3, relative)
+            end
+        end
+        tempobj0.delete()
+        current_object.spawned_object.attach_to(current_object, 0, 0, 0, relative)
+        current_object.spawned_object.detach()
+    end
+end

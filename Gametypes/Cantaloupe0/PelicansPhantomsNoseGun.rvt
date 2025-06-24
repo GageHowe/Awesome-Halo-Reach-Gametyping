@@ -1,0 +1,142 @@
+
+-- This script fills driver, nose/chin gun, and normally accessible seats in pelicans in phantoms. Players can enter vehicles labeled with mod_flyable by entering a boundary with the same spawn sequence.
+-- Game does not crash when filling pelican nose gun utilizing new seat updating method.
+declare object.object[0] with network priority low
+declare object.number[0] with network priority low
+alias tempobj0 = temporaries.object[0]
+alias tempobj1 = temporaries.object[1]
+alias tempnum0 = temporaries.number[0]
+
+on init: do
+	alias health_check = tempnum0
+	alias no_health = 1
+	for each object with label "mod_flyable" do
+		alias vehicle_to_enter = object.object[0]
+		health_check = current_object.health
+		if health_check == no_health then
+			current_object.set_shape_visibility(everyone)
+			alias last_object = tempobj0
+			last_object = current_object
+			for each object with label "mod_flyable" do
+				if current_object.spawn_sequence == last_object.spawn_sequence and current_object != last_object then
+					last_object.vehicle_to_enter = current_object
+				end
+			end
+		end
+	end
+end
+
+function current_player_force_pilot_tempobj0()
+	alias force_pilot_object = temporaries.object[0]
+	alias original_biped = temporaries.object[1]
+	alias dummy_vehicle = temporaries.object[2]
+	alias seat_refresher_man = temporaries.object[3]
+	current_player.biped.add_weapon(skull, force)
+	original_biped = current_player.biped
+	dummy_vehicle = current_player.biped.place_at_me(mongoose, none, none, 0, 0, 0, none)
+	dummy_vehicle.attach_to(current_player.biped, 0, 0, 0, relative)
+	current_player.force_into_vehicle(dummy_vehicle)
+	dummy_vehicle.detach()
+	if force_pilot_object.is_of_type(phantom) then
+	current_player.biped.attach_to(force_pilot_object, 29, 0, 14, relative) --phantom pilot location
+	end
+	if not force_pilot_object.is_of_type(phantom) and force_pilot_object.has_forge_label("mod_flyable") then
+	current_player.biped.attach_to(force_pilot_object, 44, 0, 5, relative) --pelican pilot location
+	end
+	if not force_pilot_object.has_forge_label("mod_flyable") then
+	current_player.biped.attach_to(force_pilot_object, 0, 0, 0, relative) --copilot turret location
+	end
+	seat_refresher_man = force_pilot_object.place_at_me(spartan, none, none, 0, 0, 0, none)
+	dummy_vehicle.attach_to(seat_refresher_man, 0, 0, 0, relative)
+	current_player.set_biped(seat_refresher_man)
+	current_player.force_into_vehicle(dummy_vehicle)
+	seat_refresher_man.attach_to(force_pilot_object, 0, 0, 0, relative)
+	seat_refresher_man.detach() --this updates the seats
+	seat_refresher_man.delete()
+	current_player.set_biped(original_biped)
+	current_player.biped.remove_weapon(primary, true)
+end
+
+for each object with label "mod_flyable" do
+	alias vehicle_to_enter = object.object[0]
+	alias seat_state = object.number[0]
+	alias needs_pilot = 0
+	alias needs_copilot = 1
+	alias needs_passengers = 2
+	alias full = 3
+	--fix phantom low health model issue--
+	if current_object.is_of_type(phantom) then
+		tempnum0 = current_object.health
+		if tempnum0 <= 25 then
+		current_object.health = 0
+		end
+	end
+	--fix phantom low health model issue--
+	for each player do
+		if not current_player.team.has_alliance_status(current_object.team, enemy) and current_object.shape_contains(current_player.biped) then
+			if current_object.vehicle_to_enter == no_object then
+				current_object.seat_state = needs_pilot
+				current_object.vehicle_to_enter = current_object.place_at_me(phantom, "mod_flyable", none, 0, 0, 100, none)
+			end
+			if current_object.vehicle_to_enter != no_object then
+				if current_object.seat_state == needs_passengers then
+					current_player.force_into_vehicle(current_object.vehicle_to_enter)
+					tempobj0 = current_player.get_vehicle()
+					if tempobj0 == no_object then
+						if current_object.spawn_sequence >= 0 then --positive spawn sequence values just deletes the boundary after the vehicle is filled.
+						game.show_message_to(current_player, none, "Sorry, vehicle is full!")
+						current_object.seat_state = full
+						end
+						if current_object.spawn_sequence < 0 then --negative spawn sequence values will cause new phantoms to be created after force_into_vehicle is filled.
+						current_object.vehicle_to_enter = no_object
+						end
+					end
+				end
+				if current_object.seat_state == needs_copilot then
+					alias base_object = tempobj1
+					base_object = current_object.vehicle_to_enter
+					--make tempobj0 the turret of the vehicle--
+					for each object do
+						alias zero_if_attached = tempnum0
+						zero_if_attached = current_object.get_distance_to(base_object)
+						if zero_if_attached == 0 and current_object != base_object and not current_object.is_of_type(plasma_cannon) and not current_object.is_of_type(spartan) and not current_object.is_of_type(elite) then
+							alias health_check = tempnum0
+							health_check = current_object.health
+							if health_check == 100 then
+								tempobj0 = current_object
+							end
+						end
+					end
+					--make tempobj0 the turret of the vehicle--
+					current_player_force_pilot_tempobj0() --enter the turret
+					current_object.seat_state = needs_passengers
+				end
+				if current_object.seat_state == needs_pilot then
+					tempobj0 = current_object.vehicle_to_enter
+					current_player_force_pilot_tempobj0() --enter drivers seat
+					current_object.seat_state = needs_copilot
+				end
+				if current_object.seat_state == full then
+				current_object.delete()
+				end
+			end
+		end
+	end
+end
+
+--delete this for testing all seats only--
+declare global.timer[0] = 3
+do
+tempobj0 = player[0].get_vehicle()
+	if tempobj0 != no_object then
+	global.timer[0].set_rate(-100%)
+	end
+	if global.timer[0].is_zero() then
+	global.timer[0].reset()
+	tempobj0 = player[0].biped.place_at_me(spartan, none, none, 30, 0, 0, none)
+	player[0].set_biped(tempobj0)
+	end
+end
+--delete this for testing all seats only--
+
+

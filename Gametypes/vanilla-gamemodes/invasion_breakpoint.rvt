@@ -1,0 +1,1478 @@
+
+enum attacker
+   unsc
+   covy
+end
+enum objective_type
+   none = -1
+   flag =  1 -- actually "core" but who really cares
+   bomb
+   territory
+end
+
+alias opt_attacking_team  = script_option[0] -- see (attacker) enum
+alias opt_p1_objective    = script_option[1] -- see (objective_type) enum
+alias opt_p1_duration     = script_option[2]
+alias opt_p1_offense_time = script_option[3]
+alias opt_p1_defense_time = script_option[4]
+alias opt_p2_objective    = script_option[5] -- see (objective_type) enum
+alias opt_p2_duration     = script_option[6]
+alias opt_p2_offense_time = script_option[7]
+alias opt_p2_defense_time = script_option[8]
+alias opt_p3_objective    = script_option[9] -- see (objective_type) enum
+alias opt_p3_duration     = script_option[10]
+alias opt_p3_offense_time = script_option[11]
+alias opt_p3_defense_time = script_option[12]
+alias opt_animate_cinematic_objects = script_option[13]
+alias opt_core_return_time = script_option[14]
+
+alias carrier_traits  = script_traits[0]
+alias cooldown_traits = script_traits[1]
+
+-- Unnamed Forge labels:
+alias all_unsc_data_cores = 13
+alias all_covenant_bombs  = 14
+
+alias core_captures   = player.script_stat[0]
+alias objective_time  = player.script_stat[1]
+alias core_carry_time = player.script_stat[2]
+
+alias team_unsc = team[0]
+alias team_covy = team[1]
+
+alias announced_game_start = player.number[0]
+alias announce_start_timer = player.timer[1]
+
+enum bomb_state
+   at_home = 0
+   detonating = 10
+   carried = 12
+   dropped = 13
+   armed   = 15
+end
+enum flag_state
+   at_home = 0
+   carried = 2
+   dropped = 3
+end
+enum timer_state -- values for a global number that tracks how we're working with the round timer at any given moment
+   initial = 10
+   will_end_round = 9999 -- if the round timer hits zero while this value is in use, we will end the round
+   victory = 10000 -- the attackers have won this round
+end
+
+alias sudden_death_enabled = global.number[0]
+alias temp_int_00          = global.number[1] -- unused
+alias current_phase        = global.number[2] -- numbered from 1. value 4 is used for victory
+alias current_obj_type     = global.number[3]
+alias objective_completed  = global.number[4] -- queues progression to next phase on next tick
+alias round_timer_state    = global.number[5] -- see (timer_state) enum
+alias try_announce_is_carried   = global.number[6] -- if 1, announce bomb/core taken; if 0, announce dropped
+alias last_announced_is_carried = global.number[7] -- used to manage bomb/core taken/dropped announcements
+alias temp_int_01          = global.number[8]
+alias temp_int_02          = global.number[9]
+alias temp_int_03          = global.number[10]
+alias current_flag_or_bomb = global.object[0]
+alias temp_obj_00          = global.object[1]
+alias temp_obj_01          = global.object[2]
+alias current_carrier      = global.player[0]
+alias temp_plr_00          = global.player[1]
+alias temp_plr_01          = global.player[2]
+alias defenders            = global.team[0]
+alias attackers            = global.team[1]
+alias temp_tem_00          = global.team[2]
+alias sudden_death_announce_throttle   = global.timer[0] -- announce SD on a loop, but not too often
+alias announce_a_under_attack_throttle = global.timer[2] -- don't announce "Alpha under attack!" too often
+alias announce_b_under_attack_throttle = global.timer[3] -- don't announce "Bravo under attack!" too often
+alias initial_territory_blink_timer    = global.timer[5] -- blink territory waypoints for the loadout camera and 3 seconds after
+alias announce_is_carried_cooldown     = global.timer[6] -- don't announce bomb/core taken/dropped too often
+alias started_inv_veh_time = object.number[7]
+alias waypoint_for_enemies = object.object[0] -- hill marker; used so Territories can show different waypoints to each team
+alias sound_emitter        = object.object[1]
+alias offense_timer        = object.timer[0]
+alias defense_timer        = object.timer[1]
+alias inv_veh_marker_time  = object.timer[2]  -- for INV_VEHICLE; indicates how much longer to display the waypoint for
+alias carrier_cooldown_timer = player.timer[0]
+alias stat_update_interval   = player.timer[2]
+
+declare sudden_death_enabled with network priority local
+declare temp_int_00          with network priority local
+declare current_phase        with network priority low = 1
+declare current_obj_type     with network priority low = objective_type.none
+declare objective_completed  with network priority local = -1
+declare round_timer_state    with network priority low = 10
+declare try_announce_is_carried   with network priority low
+declare last_announced_is_carried with network priority low
+declare temp_int_01          with network priority local
+declare temp_int_02          with network priority local
+declare temp_int_03          with network priority local
+declare current_flag_or_bomb with network priority low
+declare temp_obj_00          with network priority local
+declare temp_obj_01          with network priority local
+declare current_carrier      with network priority low
+declare temp_plr_00          with network priority low
+declare temp_plr_01          with network priority local
+declare defenders   with network priority low = team[0]
+declare attackers   with network priority low = team[1]
+declare temp_tem_00 with network priority local
+declare sudden_death_announce_throttle = 35
+declare global.timer[1] = 10
+declare announce_a_under_attack_throttle = 11
+declare announce_b_under_attack_throttle = 11
+declare global.timer[4] = 2
+declare initial_territory_blink_timer = 3
+declare announce_is_carried_cooldown = 3
+declare player.number[0] with network priority low
+declare player.timer[1] = 5
+declare player.stat_update_interval = 1
+declare object.number[0] with network priority low
+declare object.number[1] with network priority local
+declare object.number[2] with network priority local
+declare object.number[3] with network priority low
+declare object.number[4] with network priority low
+declare object.number[5] with network priority low
+declare object.number[6] with network priority low
+declare object.started_inv_veh_time with network priority low
+declare object.waypoint_for_enemies with network priority low
+declare object.sound_emitter        with network priority low
+declare object.offense_timer       = opt_p1_offense_time
+declare object.defense_timer       = opt_p1_defense_time
+declare object.inv_veh_marker_time = 5
+declare object.timer[3] = opt_core_return_time
+declare team.number[0] with network priority low
+declare team.number[1] with network priority low
+declare team.number[2] with network priority low
+declare team.object[0] with network priority low
+declare team.object[1] with network priority low
+declare team.timer[0] = 30
+declare team.timer[1] = 15
+
+do
+   sudden_death_enabled = 0
+end
+
+on pregame: do
+   game.symmetry = 0
+end
+
+on init: if current_phase == 1 then -- set round timer for Phase 1
+   alias new_round_time = temp_int_01
+   --
+   new_round_time  = opt_p1_duration
+   new_round_time *= 60
+   game.round_timer = new_round_time
+   initial_territory_blink_timer += game.loadout_cam_time
+end
+
+do
+   sudden_death_enabled = 0
+   game.round_timer.set_rate(-100%)
+   announce_a_under_attack_throttle.set_rate(-100%)
+   announce_b_under_attack_throttle.set_rate(-100%)
+   initial_territory_blink_timer.set_rate(-100%)
+   --
+   -- Set up team roles:
+   --
+   attackers = team_unsc
+   defenders = team_covy
+   if opt_attacking_team == attacker.covy then 
+      attackers = team_covy
+      defenders = team_unsc
+   end
+end
+
+for each object with label "inv_cinematic" do -- make cinematic objects indestructible
+   current_object.set_invincibility(1)
+end
+
+for each object with label "inv_res_zone" do -- manage spawn zone permissions
+   current_object.set_spawn_location_permissions(no_one)
+   current_object.set_invincibility(1)
+   current_object.set_pickup_permissions(no_one)
+   if current_object.spawn_sequence <= current_phase then 
+      current_object.set_spawn_location_permissions(allies)
+      current_object.set_spawn_location_fireteams(all)
+   end
+end
+
+for each object with label "inv_res_p1" do -- set up Phase 1 fireteam spawns
+   current_object.set_spawn_location_permissions(no_one)
+   current_object.set_invincibility(1)
+   current_object.set_pickup_permissions(no_one)
+   if current_phase == 1 then -- Manage fireteam-specific spawns
+      for each object with label "inv_res_p1" do
+         if current_object.spawn_sequence == 0 then 
+            current_object.set_spawn_location_fireteams(0)
+         end
+      end
+      for each object with label "inv_res_p1" do
+         if current_object.spawn_sequence == 1 then 
+            current_object.set_spawn_location_fireteams(1)
+         end
+      end
+      for each object with label "inv_res_p1" do
+         if current_object.spawn_sequence == 2 then 
+            current_object.set_spawn_location_fireteams(2)
+         end
+      end
+      for each object with label "inv_res_p1" do
+         if current_object.spawn_sequence > 2 then 
+            current_object.set_spawn_location_fireteams(all)
+         end
+      end
+      current_object.set_spawn_location_permissions(allies)
+      for each player do
+         if current_object.team == current_player.team then 
+            temp_int_01 = 0
+            temp_int_01 = current_player.get_fireteam()
+            if current_object.spawn_sequence == temp_int_01 then 
+               current_player.set_primary_respawn_object(current_object)
+            end
+         end
+      end
+   end
+end
+for each object with label "inv_res_p2" do -- set up Phase 2 fireteam spawns
+   current_object.set_spawn_location_permissions(no_one)
+   current_object.set_invincibility(1)
+   current_object.set_pickup_permissions(no_one)
+   if current_phase == 2 then -- Manage fireteam-specific spawns
+      for each object with label "inv_res_p2" do
+         if current_object.spawn_sequence == 0 then 
+            current_object.set_spawn_location_fireteams(0)
+         end
+      end
+      for each object with label "inv_res_p2" do
+         if current_object.spawn_sequence == 1 then 
+            current_object.set_spawn_location_fireteams(1)
+         end
+      end
+      for each object with label "inv_res_p2" do
+         if current_object.spawn_sequence == 2 then 
+            current_object.set_spawn_location_fireteams(2)
+         end
+      end
+      for each object with label "inv_res_p2" do
+         if current_object.spawn_sequence > 2 then 
+            current_object.set_spawn_location_fireteams(all)
+         end
+      end
+      current_object.set_spawn_location_permissions(allies)
+      for each player do
+         if current_object.team == current_player.team then 
+            temp_int_01 = 0
+            temp_int_01 = current_player.get_fireteam()
+            if current_object.spawn_sequence == temp_int_01 then 
+               current_player.set_primary_respawn_object(current_object)
+            end
+         end
+      end
+   end
+end
+for each object with label "inv_res_p3" do -- set up Phase 3 fireteam spawns
+   current_object.set_spawn_location_permissions(no_one)
+   current_object.set_invincibility(1)
+   current_object.set_pickup_permissions(no_one)
+   if current_phase == 3 then -- Manage fireteam-specific spawns
+      for each object with label "inv_res_p3" do
+         if current_object.spawn_sequence == 0 then 
+            current_object.set_spawn_location_fireteams(0)
+         end
+      end
+      for each object with label "inv_res_p3" do
+         if current_object.spawn_sequence == 1 then 
+            current_object.set_spawn_location_fireteams(1)
+         end
+      end
+      for each object with label "inv_res_p3" do
+         if current_object.spawn_sequence == 2 then 
+            current_object.set_spawn_location_fireteams(2)
+         end
+      end
+      for each object with label "inv_res_p3" do
+         if current_object.spawn_sequence > 2 then 
+            current_object.set_spawn_location_fireteams(all)
+         end
+      end
+      current_object.set_spawn_location_permissions(allies)
+      for each player do
+         if current_object.team == current_player.team then 
+            temp_int_01 = 0
+            temp_int_01 = current_player.get_fireteam()
+            if current_object.spawn_sequence == temp_int_01 then 
+               current_player.set_primary_respawn_object(current_object)
+            end
+         end
+      end
+   end
+end
+
+for each player do -- set up UI and announce game start
+   current_player.announce_start_timer.set_rate(-100%)
+   current_player.stat_update_interval.set_rate(0%)
+   current_player.biped.set_waypoint_icon(none)
+   script_widget[0].set_text("Your objective is under attack!")
+   script_widget[0].set_visibility(current_player, false)
+   if  current_player.announced_game_start == 0
+   and current_player.announce_start_timer.is_zero()
+   and current_phase == 1
+   and opt_animate_cinematic_objects == 4
+   then 
+      send_incident(invasion_game_start_c, current_player, no_player)
+      if opt_animate_cinematic_objects == 4 and current_player.announced_game_start == 0 and current_player.team == attackers then 
+         send_incident(team_offense, current_player, no_player)
+         current_player.announced_game_start = 1
+      end
+      if opt_animate_cinematic_objects == 4 and current_player.announced_game_start == 0 and current_player.team == defenders then 
+         send_incident(team_defense, current_player, no_player)
+         current_player.announced_game_start = 1
+      end
+   end
+end
+
+for each team do -- enable co-op spawning for all players
+   if current_team.has_any_players() then 
+      current_team.set_co_op_spawning(true)
+   end
+end
+
+do -- manage loadout palettes and player waypoints
+   for each player do
+      current_player.biped.set_waypoint_visibility(allies)
+      current_player.biped.set_waypoint_priority(normal)
+      if current_phase == 1 then 
+         if current_player.team == team_unsc then 
+            current_player.set_loadout_palette(spartan_tier_1)
+         end
+         if current_player.team == team_covy then 
+            current_player.set_loadout_palette(elite_tier_1)
+         end
+      end
+   end
+   for each player do
+      if current_phase == 2 then 
+         if current_player.team == team_unsc then 
+            current_player.set_loadout_palette(spartan_tier_2)
+         end
+         if current_player.team == team_covy then 
+            current_player.set_loadout_palette(elite_tier_2)
+         end
+      end
+   end
+   for each player do
+      if current_phase == 3 then 
+         if current_player.team == team_unsc then 
+            current_player.set_loadout_palette(spartan_tier_3)
+         end
+         if current_player.team == team_covy then 
+            current_player.set_loadout_palette(elite_tier_3)
+         end
+      end
+   end
+   for each player do
+      if current_phase > 3 then 
+         current_player.set_loadout_palette(none)
+      end
+   end
+end
+
+do -- get current phase type for the rest of the script tick
+   current_obj_type = objective_type.none
+   if current_phase == 1 then 
+      current_obj_type = opt_p1_objective
+   end
+   if current_phase == 2 then 
+      current_obj_type = opt_p2_objective
+   end
+   if current_phase == 3 then 
+      current_obj_type = opt_p3_objective
+   end
+end
+
+do -- round card icon and icon text
+   for each player do
+      if current_player.team == team_covy then 
+         current_player.set_round_card_icon(covenant)
+         current_player.set_round_card_text("Elite")
+      end
+   end
+   for each player do
+      if current_player.team == team_unsc then 
+         current_player.set_round_card_icon(noble)
+         current_player.set_round_card_text("Spartan")
+      end
+   end
+end
+
+if opt_animate_cinematic_objects == 4 then -- round card title
+   if current_obj_type == objective_type.flag then 
+      for each player do
+         if current_player.team == attackers then 
+            current_player.set_round_card_title("VAULT OPENED\r\nSteal the Core!")
+         end
+      end
+      for each player do
+         if current_player.team == defenders then 
+            current_player.set_round_card_title("VAULT OPENED\r\nDefend the Core!")
+         end
+      end
+   end
+   if current_obj_type == objective_type.bomb then 
+      for each player do
+         if current_player.team == defenders then 
+            current_player.set_round_card_title("Fall back to the vault!\r\nDefend the Data Core!")
+         end
+      end
+      for each player do
+         if current_player.team == attackers then 
+            current_player.set_round_card_title("Bomb the vault doors!\r\nUnlock the Data Core!")
+         end
+      end
+   end
+   if current_obj_type == objective_type.territory then 
+      for each player do
+         if current_player.team == defenders then 
+            current_player.set_round_card_title("Protect both territories to\r\nstop the Elite assault!")
+         end
+      end
+      for each player do
+         if current_player.team == attackers then 
+            current_player.set_round_card_title("Capture either territory to punch a\r\nhole in the Spartan defense!")
+         end
+      end
+   end
+end
+
+for each object with label "inv_objective" do -- manage INV_OBJECTIVE waypoint and shape visibility
+   current_object.set_spawn_location_permissions(no_one)
+   current_object.set_invincibility(1)
+   current_object.set_pickup_permissions(no_one)
+   current_object.set_waypoint_visibility(no_one)
+   current_object.set_shape_visibility(no_one)
+   if current_object.spawn_sequence != current_phase then 
+      current_object.waypoint_for_enemies.delete()
+   end
+   if current_object.spawn_sequence == current_phase then 
+      current_object.set_waypoint_visibility(allies)
+      current_object.set_waypoint_icon(defend)
+      current_object.set_waypoint_timer(none)
+      current_object.set_waypoint_priority(high)
+      if current_object.waypoint_for_enemies == no_object then 
+         current_object.waypoint_for_enemies = current_object.place_at_me(hill_marker, none, never_garbage_collect | suppress_effect, 0, 0, 0, none)
+         temp_obj_00 = current_object.waypoint_for_enemies -- intermediate
+         temp_obj_00.team = defenders -- === (current_object.waypoint_for_enemies.team = defenders)
+      end
+      current_object.waypoint_for_enemies.set_waypoint_visibility(enemies)
+      current_object.waypoint_for_enemies.set_waypoint_icon(ordnance)
+      current_object.waypoint_for_enemies.set_waypoint_timer(none)
+      current_object.waypoint_for_enemies.set_waypoint_priority(high)
+      if current_phase == 1 and current_object.spawn_sequence == current_phase then 
+         current_object.set_shape_visibility(everyone)
+         if opt_p1_objective > 2 then 
+            current_object.set_waypoint_timer(0)
+            current_object.waypoint_for_enemies.set_waypoint_timer(0)
+         end
+      end
+      if current_phase == 2 and current_object.spawn_sequence == current_phase then 
+         current_object.set_shape_visibility(everyone)
+         if opt_p2_objective > 2 then 
+            current_object.set_waypoint_timer(0)
+            current_object.waypoint_for_enemies.set_waypoint_timer(0)
+         end
+      end
+      if current_phase == 3 and current_object.spawn_sequence == current_phase then 
+         current_object.set_shape_visibility(everyone)
+         if opt_p3_objective > 2 then 
+            current_object.set_waypoint_timer(0)
+            current_object.waypoint_for_enemies.set_waypoint_timer(0)
+         end
+      end
+   end
+end
+
+for each object with label "inv_obj_flag" do -- disable spawning, waypoints, etc., for all flag spawn points
+   current_object.set_spawn_location_permissions(no_one)
+   current_object.set_invincibility(1)
+   current_object.set_pickup_permissions(no_one)
+   current_object.set_waypoint_visibility(no_one)
+   current_object.set_shape_visibility(no_one)
+end
+
+for each object with label "inv_objective" do -- clear progress bars from all INV_OBJECTIVE
+   current_object.set_progress_bar(0, no_one)
+end
+
+if current_phase < 3 then -- delete INV_WEAPON, INV_VEHICLE, and INV_MANCANNON until their phase begins
+   for each object with label "inv_vehicle" do
+      if current_object.spawn_sequence > current_phase then 
+         current_object.delete()
+      end
+   end
+   for each object with label "inv_weapon" do
+      if current_object.spawn_sequence > current_phase then 
+         current_object.delete()
+      end
+   end
+end
+
+for each object with label "inv_vehicle" do -- manage INV_VEHICLE waypoints
+   current_object.inv_veh_marker_time.set_rate(-100%)
+   if current_object.started_inv_veh_time == 0 then 
+      current_object.inv_veh_marker_time = 10
+      current_object.started_inv_veh_time = 1
+   end
+   current_object.set_waypoint_icon(supply)
+   current_object.set_waypoint_visibility(allies)
+   current_object.set_waypoint_priority(normal)
+   do
+      alias distance = temp_int_01
+      --
+      distance = 0
+      for each player do
+         distance = current_object.get_distance_to(current_player.biped)
+         if distance < 10 then -- timer drains faster if a player is nearby
+            current_object.inv_veh_marker_time.set_rate(-1000%)
+         end
+      end
+   end
+   if current_object.inv_veh_marker_time < 5 then 
+      current_object.set_waypoint_icon(none)
+      current_object.set_waypoint_priority(low)
+      if current_object.inv_veh_marker_time.is_zero() then 
+         current_object.set_waypoint_visibility(no_one)
+      end
+   end
+end
+
+for each object with label "inv_gates" do -- delete INV_GATES after their phase ends
+   if current_object.spawn_sequence >= current_phase then 
+      current_object.set_invincibility(1)
+   end
+   if current_object.spawn_sequence < current_phase then 
+      current_object.set_invincibility(0)
+      current_object.kill(false)
+      if not current_object.is_of_type(breakpoint_bomb_door) and not current_object.is_of_type(heavy_barrier) then 
+         current_object.delete()
+      end
+   end
+end
+
+for each object with label "inv_platform" do -- handle INV_PLATFORM (spawn sequence) for Spire's grav lifts to the tower top
+   current_object.set_device_position(100)
+   if not current_object.spawn_sequence > current_phase then 
+      current_object.set_device_position(0)
+   end
+end
+
+if current_phase == 1 and objective_completed == 1 then -- advance from Phase 1 to Phase 2
+   if opt_attacking_team == attacker.unsc then 
+      game.play_sound_for(all_players, inv_cue_spartan_win_1, true)
+   end
+   if opt_attacking_team == attacker.covy then 
+      game.play_sound_for(all_players, inv_cue_covenant_win_1, true)
+   end
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == 2 then 
+         current_object.offense_timer = opt_p2_offense_time
+         current_object.defense_timer = opt_p2_defense_time
+      end
+   end
+   for each player do
+      current_player.set_round_card_title("")
+   end
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == current_phase then 
+         current_object.waypoint_for_enemies.delete()
+      end
+   end
+   --
+   alias new_round_time = temp_int_01
+   --
+   current_phase       = 2
+   current_obj_type    = opt_p2_objective
+   objective_completed = 0
+   new_round_time   = opt_p2_duration
+   new_round_time  *= 60
+   game.round_timer = new_round_time
+   game.sudden_death_timer.reset()
+end
+
+if current_phase == 2 and objective_completed == 1 then -- advance from Phase 2 to Phase 3
+   if opt_attacking_team == attacker.unsc then 
+      game.play_sound_for(all_players, inv_cue_spartan_win_2, true)
+   end
+   if opt_attacking_team == attacker.covy then 
+      game.play_sound_for(all_players, inv_cue_covenant_win_2, true)
+   end
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == 3 then 
+         current_object.offense_timer = opt_p3_offense_time
+         current_object.defense_timer = opt_p3_defense_time
+      end
+   end
+   for each player do
+      current_player.set_round_card_title("")
+   end
+   --
+   alias new_round_time = temp_int_01
+   --
+   current_phase       = 3
+   current_obj_type    = opt_p3_objective
+   objective_completed = 0
+   new_round_time   = opt_p3_duration
+   new_round_time  *= 60
+   game.round_timer = new_round_time
+   game.sudden_death_timer.reset()
+end
+
+if current_phase == 3 and objective_completed == 1 then -- advance from Phase 3 to victory
+   if opt_attacking_team == attacker.unsc then 
+      game.play_sound_for(all_players, inv_cue_spartan_win_big, true)
+   end
+   if opt_attacking_team == attacker.covy then 
+      game.play_sound_for(all_players, inv_cue_covenant_win_big, true)
+   end
+   current_phase       = 4
+   objective_completed = 0
+   send_incident(inv_elite_win, defenders, attackers)
+   round_timer_state = timer_state.victory
+end
+
+do -- manage attacking team's score
+   --
+   -- The standard Invasion gametype just adds 1 to the attacking team's score 
+   -- at each phase change, but here, we're explicitly setting their score. I 
+   -- wonder what motivated the change.
+   --
+   if current_phase == 2 then 
+      attackers.score = 1
+   end
+   if current_phase == 3 then 
+      attackers.score = 2
+   end
+   if current_phase == 4 then 
+      attackers.score = 3
+   end
+end
+
+if current_obj_type == objective_type.flag then -- disable sound emitters during CTF phases
+   set_scenario_interpolator_state(2, 0) -- disable sound emitter 2
+   set_scenario_interpolator_state(1, 0) -- disable sound emitter 1
+end
+
+do -- handle territory behavior
+   alias current_index = temp_int_01
+   --
+   current_index = 1
+   for each object with label "inv_objective" do
+      current_object.offense_timer.set_rate(0%)
+      if current_object.spawn_sequence != current_phase then -- delete sound emitters for objectives not of this phase
+         current_object.sound_emitter.delete()
+      end
+      if current_object.spawn_sequence == current_phase and current_obj_type == objective_type.territory then 
+         --
+         -- Manage territory objectives: check if they're under attack, and manage 
+         -- their timer rates accordingly.
+         --
+         alias current_territory == temp_obj_00
+         --
+         current_object.team = defenders
+         if current_object.number[0] == 0 then 
+            --
+            -- Give each objective a unique ID number, so that we can distinguish 
+            -- between Alpha and Bravo.
+            --
+            current_object.number[0] = current_index
+            current_index += 1
+         end
+         current_territory = current_object
+         --
+         -- Create a sound emitter for the territory if it doesn't have one:
+         --
+         if current_territory.number[0] == 1 then 
+            set_scenario_interpolator_state(1, 0) -- disable sound emitter 1
+            if current_object.sound_emitter == no_object then 
+               current_object.sound_emitter = current_object.place_at_me(sound_emitter_alarm_1, none, never_garbage_collect | suppress_effect, 0, 0, 5, none)
+            end
+         end
+         if current_territory.number[0] == 2 then 
+            set_scenario_interpolator_state(2, 0) -- disable sound emitter 2
+            if current_object.sound_emitter == no_object then 
+               current_object.sound_emitter = current_object.place_at_me(sound_emitter_alarm_2, none, never_garbage_collect | suppress_effect, 0, 0, 5, none)
+            end
+         end
+         current_territory.set_waypoint_priority(high)
+         current_territory.waypoint_for_enemies.set_waypoint_priority(high)
+         current_territory.set_progress_bar(0, enemies)
+         temp_tem_00 = no_team
+         --
+         -- Count the number of players inside the territory:
+         --
+         current_territory.number[5] = 0
+         current_territory.number[3] = 0
+         current_territory.number[4] = 0
+         for each object with label "inv_cinematic" do
+            if current_object.spawn_sequence == 1 and current_territory.shape_contains(current_object) then 
+               temp_int_02 = 0
+               temp_int_03 = 0
+               temp_int_03 = current_territory.number[6]
+               temp_int_03 /= 6
+               temp_int_03 += 1
+               temp_int_02 = current_territory.timer[0]
+               temp_int_02 -= opt_p1_offense_time
+               temp_int_02 *= -5
+               temp_int_02 += temp_int_03
+               if current_territory.number[6] >= 30 then 
+                  current_territory.number[6] = 0
+               end
+               current_object.set_device_position(temp_int_02)
+            end
+         end
+         for each player do
+            alias current_vehicle = temp_obj_01
+            if current_territory.shape_contains(current_player.biped) then 
+               current_vehicle = no_object
+               current_vehicle = current_player.try_get_vehicle()
+               if current_vehicle == no_object then -- players in a vehicle cannot influence territories
+                  current_territory.number[5] += 1
+                  current_territory.number[3] += 1
+                  if current_player.team == attackers then 
+                     current_territory.number[3] -= 1
+                     current_territory.number[4] += 1
+                     current_territory.number[6] += 1
+                     do -- update Objective Time stat
+                        current_player.stat_update_interval.set_rate(-100%)
+                        if current_player.stat_update_interval.is_zero() then 
+                           current_player.objective_time += 1
+                           current_player.stat_update_interval.reset()
+                        end
+                     end
+                  end
+               end
+            end
+         end
+         --
+         -- React to the territory being under attack:
+         --
+         if current_territory.number[5] > 0 and current_territory.number[4] > 0 then 
+            for each player do
+               if current_player.team == defenders and current_territory.number[4] > 0 then 
+                  script_widget[0].set_visibility(current_player, true)
+               end
+            end
+            if current_territory.number[0] == 1 and announce_a_under_attack_throttle.is_zero() then 
+               game.play_sound_for(defenders, announce_a_under_attack, true)
+               announce_a_under_attack_throttle.reset()
+            end
+            if current_territory.number[0] == 2 and announce_b_under_attack_throttle.is_zero() then 
+               game.play_sound_for(defenders, announce_b_under_attack, true)
+               announce_b_under_attack_throttle.reset()
+            end
+            current_territory.set_waypoint_priority(blink)
+            current_territory.waypoint_for_enemies.set_waypoint_priority(blink)
+            current_territory.offense_timer.set_rate(-100%)
+            sudden_death_enabled = 1
+            for each object with label "inv_cinematic" do
+               if current_object.spawn_sequence == 1 and current_territory.number[0] == 2 and current_territory.shape_contains(current_object) then 
+                  current_object.set_device_position(100)
+               end
+            end
+            if current_territory.number[3] > 0 and current_territory.number[4] > 0 then 
+               current_territory.offense_timer.set_rate(0%)
+               announce_a_under_attack_throttle.set_rate(0%)
+               announce_b_under_attack_throttle.set_rate(0%)
+            end
+            if current_territory.number[4] == 0 then 
+               current_territory.set_waypoint_priority(normal)
+            end
+         end
+         if current_territory.number[4] == 0 and current_territory.offense_timer < current_territory.defense_timer then 
+            --
+            -- Handle float time.
+            --
+            current_territory.offense_timer.set_rate(100%)
+         end
+         current_territory.set_progress_bar(object.offense_timer, enemies)
+         if current_object.offense_timer.is_zero() then 
+            current_territory.set_progress_bar(object.offense_timer, no_one)
+            objective_completed = 1
+         end
+      end
+   end
+end
+
+if game.round_timer.is_zero() and round_timer_state == timer_state.will_end_round then -- handle expiration of phase timer
+   for each player do
+      if attackers.score == 0 and current_player.team == defenders then 
+         send_incident(skunked_achieve, current_player, no_player)
+      end
+   end
+   if attackers.score == 0 and defenders == team_unsc then 
+      send_incident(inv_spartans_win_rd1, all_players, no_player)
+      game.play_sound_for(all_players, inv_cue_spartan_win_1, true)
+   end
+   if attackers.score == 0 and defenders == team_covy then 
+      send_incident(inv_elites_win_rd1, all_players, no_player)
+   end
+   if attackers.score == 1 and defenders == team_unsc then 
+      send_incident(inv_spartans_win_rd2, all_players, no_player)
+      game.play_sound_for(all_players, inv_cue_spartan_win_2, true)
+   end
+   if attackers.score == 2 and defenders == team_unsc then 
+      send_incident(inv_spartan_win, all_players, no_player)
+      game.play_sound_for(all_players, inv_cue_spartan_win_big, true)
+   end
+   if attackers.score != 0 and defenders == team_covy then 
+      send_incident(inv_elite_win, all_players, no_player)
+   end
+   round_timer_state = timer_state.victory
+end
+
+if current_obj_type == objective_type.flag and current_flag_or_bomb == no_object then -- handle the script losing track of the flag
+   --
+   -- If we've lost track of the current flag, but it's still on the map, 
+   -- then reuse it. I wonder... Can this happen if a host migration 
+   -- occurs while someone is carrying the flag?
+   --
+   for each object with label all_unsc_data_cores do
+      current_flag_or_bomb = current_object
+      current_flag_or_bomb.number[0] = 2
+      current_flag_or_bomb.team = defenders
+      current_flag_or_bomb.set_pickup_permissions(enemies)
+      current_flag_or_bomb.set_weapon_pickup_priority(hold_action)
+      current_flag_or_bomb.set_waypoint_icon(flag)
+      current_flag_or_bomb.set_waypoint_priority(high)
+   end
+end
+
+if current_obj_type == objective_type.flag and not current_flag_or_bomb == no_object then -- waypoint for carried flag; INV_NO_CORE_ZONE handling
+   temp_plr_01 = no_player
+   temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+   if temp_plr_01 == no_player then 
+      for each object with label all_unsc_data_cores do
+         current_flag_or_bomb.set_waypoint_icon(flag)
+         current_flag_or_bomb.set_waypoint_visibility(everyone)
+         current_flag_or_bomb.set_waypoint_priority(high)
+      end
+      for each object with label "inv_no_core_zone" do -- reset flags that enter INV_NO_CORE_ZONE boundaries
+         if current_object.shape_contains(current_flag_or_bomb) then 
+            current_flag_or_bomb.delete()
+            current_flag_or_bomb = no_object
+            send_incident(inv_core_reset, all_players, all_players)
+         end
+      end
+   end
+end
+
+for each object with label "inv_obj_flag" do -- spawn flag as needed
+   current_object.timer[0].set_rate(0%)
+   if current_object.spawn_sequence == current_phase and current_obj_type == objective_type.flag then 
+      temp_obj_00 = current_object
+      if current_flag_or_bomb == no_object then 
+         if opt_attacking_team == attacker.unsc and not opt_animate_cinematic_objects == 2 and not opt_animate_cinematic_objects == 1 then 
+            current_flag_or_bomb = temp_obj_00.place_at_me(covenant_power_core, none, never_garbage_collect, 0, 0, 3, none)
+         end
+         if opt_attacking_team == attacker.covy and not opt_animate_cinematic_objects == 2 and not opt_animate_cinematic_objects == 1 then 
+            current_flag_or_bomb = temp_obj_00.place_at_me(unsc_data_core, none, never_garbage_collect, 0, 0, 3, none)
+         end
+         current_flag_or_bomb.team = defenders
+         current_flag_or_bomb.set_pickup_permissions(enemies)
+         current_flag_or_bomb.set_weapon_pickup_priority(hold_action)
+         current_flag_or_bomb.set_waypoint_icon(flag)
+         current_flag_or_bomb.set_waypoint_priority(high)
+         current_flag_or_bomb.set_waypoint_visibility(everyone)
+         current_flag_or_bomb.set_shape(sphere, 10)
+         current_flag_or_bomb.set_shape_visibility(no_one)
+      end
+   end
+end
+
+if current_obj_type == objective_type.flag then 
+   temp_plr_01 = no_player
+   temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+   if not temp_plr_01 == no_player then 
+      temp_plr_01.apply_traits(carrier_traits)
+      temp_plr_01.biped.set_waypoint_icon(flag)
+      do -- update Core Carry Time stat
+         temp_plr_01.stat_update_interval.set_rate(-100%)
+         if temp_plr_01.stat_update_interval.is_zero() then 
+            temp_plr_01.core_carry_time += 1
+            temp_plr_01.stat_update_interval.reset()
+         end
+      end
+   end
+   if not temp_plr_01 == no_player then 
+      current_flag_or_bomb.set_waypoint_visibility(no_one)
+      current_flag_or_bomb.number[0] = 2
+      current_flag_or_bomb.timer[1] = opt_core_return_time
+      current_flag_or_bomb.set_progress_bar(0, no_one)
+      sudden_death_enabled = 1
+      temp_plr_01.carrier_cooldown_timer = 1
+      --
+      for each object with label "inv_objective" do -- check for and handle core capture
+         current_object.set_progress_bar(0, no_one)
+         if current_object.spawn_sequence == current_phase and current_object.shape_contains(temp_plr_01.biped) then 
+            current_flag_or_bomb.delete()
+            send_incident(inv_core_captured, temp_plr_01, all_players)
+            temp_plr_01.core_captures += 1
+            objective_completed = 1
+            for each player do
+               current_player.biped.set_waypoint_icon(none) -- clear carrier's waypoint
+            end
+         end
+      end
+   end
+   if temp_plr_01 == no_player and current_flag_or_bomb.number[0] == 2 then 
+      current_flag_or_bomb.number[0] = 3
+      if opt_core_return_time > 1 then 
+         current_flag_or_bomb.set_progress_bar(3, allies)
+      end
+      current_flag_or_bomb.set_waypoint_icon(flag)
+      current_flag_or_bomb.set_waypoint_visibility(everyone)
+      current_flag_or_bomb.set_waypoint_priority(high)
+      current_flag_or_bomb.number[1] = 0
+   end
+end
+
+for each team do
+   if current_team.has_any_players() and current_obj_type == objective_type.flag and not current_flag_or_bomb == no_object and current_flag_or_bomb.number[0] == 3 then 
+      current_flag_or_bomb.timer[3].set_rate(100%)
+      current_flag_or_bomb.set_waypoint_priority(high)
+      temp_int_01 = 0
+      for each player do
+         if current_player.team == defenders and current_flag_or_bomb.shape_contains(current_player.biped) then 
+            current_flag_or_bomb.timer[3].set_rate(-100%)
+            current_flag_or_bomb.set_waypoint_priority(blink)
+            temp_int_01 = 1
+            if opt_core_return_time == 1 then 
+               current_flag_or_bomb.timer[3].set_rate(-1000%)
+            end
+         end
+      end
+      for each player do
+         if current_player.team == attackers and current_flag_or_bomb.shape_contains(current_player.biped) then 
+            current_flag_or_bomb.timer[3].set_rate(0%)
+            if temp_int_01 == 1 then 
+               current_flag_or_bomb.set_waypoint_priority(blink)
+            end
+         end
+      end
+      if current_flag_or_bomb.is_out_of_bounds() or current_flag_or_bomb.timer[3].is_zero() then 
+         current_flag_or_bomb.delete()
+         send_incident(inv_core_reset, all_players, all_players)
+         current_flag_or_bomb.number[1] = 0
+      end
+   end
+end
+
+for each team do
+   if current_obj_type == objective_type.flag and current_team.has_any_players() then 
+      temp_plr_01 = no_player
+      if not current_flag_or_bomb == no_object and current_flag_or_bomb.number[0] == 2 and current_flag_or_bomb.number[1] == 0 then 
+         temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+         if not temp_plr_01 == no_player then 
+            attackers.object[0].set_waypoint_priority(high)
+            current_flag_or_bomb.number[1] = 1
+            current_flag_or_bomb.set_waypoint_icon(none)
+            current_flag_or_bomb.number[2] = 0
+            try_announce_is_carried = 1
+            current_carrier = temp_plr_01
+         end
+      end
+   end
+end
+
+for each team do
+   if current_obj_type == objective_type.flag and current_team.has_any_players() then 
+      temp_plr_01 = no_player
+      if not current_flag_or_bomb == no_object and current_flag_or_bomb.number[0] == 3 and current_flag_or_bomb.number[2] == 0 then 
+         temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+         if temp_plr_01 == no_player then 
+            try_announce_is_carried = 0
+            attackers.object[0].set_waypoint_priority(low)
+            current_flag_or_bomb.number[2] = 1
+         end
+      end
+   end
+end
+
+for each player do
+   temp_plr_01 = no_player
+   if current_obj_type == objective_type.flag then 
+      temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+      if not current_player == temp_plr_01 and current_player.carrier_cooldown_timer > 0 then 
+         current_player.carrier_cooldown_timer.set_rate(-100%)
+         if not current_player.carrier_cooldown_timer.is_zero() then 
+            current_player.apply_traits(cooldown_traits)
+         end
+      end
+   end
+end
+
+for each player do
+   if current_obj_type == objective_type.flag and current_carrier.killer_type_is(kill) then 
+      temp_plr_00 = current_carrier.try_get_killer()
+      send_incident(flagcarrier_kill, temp_plr_00, current_carrier)
+      current_carrier = no_player
+   end
+end
+
+if current_obj_type == objective_type.bomb and current_flag_or_bomb == no_object then 
+   --
+   -- If we've lost track of the current bomb, but it's still on the map, 
+   -- then reuse it.
+   --
+   for each object with label all_covenant_bombs do
+      current_flag_or_bomb = current_object
+      current_flag_or_bomb.number[0] = 12
+      current_flag_or_bomb.team = defenders
+      current_flag_or_bomb.set_pickup_permissions(enemies)
+      current_flag_or_bomb.set_weapon_pickup_priority(hold_action)
+      current_flag_or_bomb.set_waypoint_icon(bomb)
+      current_flag_or_bomb.set_waypoint_priority(high)
+   end
+end
+
+for each team do -- compute bomb arming and disarming time
+   if current_obj_type == objective_type.bomb then 
+      temp_int_01 = 0
+      temp_int_02 = 0
+      if current_phase == 1 then 
+         temp_int_01 = opt_p1_offense_time
+         temp_int_02 = opt_p1_defense_time
+      end
+      if current_phase == 2 then 
+         temp_int_01 = script_option[7]
+         temp_int_02 = script_option[8]
+      end
+      if current_phase == 3 then 
+         temp_int_01 = script_option[11]
+         temp_int_02 = script_option[12]
+      end
+      temp_int_01 /= 4
+      current_team.number[0] = temp_int_01
+      current_team.number[1] = temp_int_02
+      if current_flag_or_bomb.number[0] != 15 and current_flag_or_bomb.timer[0] > current_team.number[0] then 
+         current_flag_or_bomb.timer[0] = current_team.number[0]
+      end
+   end
+end
+
+for each object with label "inv_obj_flag" do -- spawn a new bomb as needed
+   if current_object.spawn_sequence == current_phase and current_obj_type == objective_type.bomb then 
+      current_flag_or_bomb.set_waypoint_visibility(everyone)
+      if current_flag_or_bomb == no_object then 
+         current_flag_or_bomb = current_object.place_at_me(covenant_bomb, none, never_garbage_collect, 0, 0, 3, none)
+         current_flag_or_bomb.set_shape(sphere, 10)
+         current_flag_or_bomb.team = defenders
+         current_flag_or_bomb.set_pickup_permissions(enemies)
+         current_flag_or_bomb.set_weapon_pickup_priority(hold_action)
+         current_flag_or_bomb.set_waypoint_icon(bomb)
+         current_flag_or_bomb.set_waypoint_priority(high)
+         current_flag_or_bomb.set_shape(sphere, 10)
+         current_flag_or_bomb.set_shape_visibility(no_one)
+         current_flag_or_bomb.timer[0] = attackers.number[0]
+         current_flag_or_bomb.timer[1] = attackers.number[1]
+      end
+   end
+end
+
+if current_obj_type == objective_type.bomb then 
+   temp_plr_01 = no_player
+   temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+   if not temp_plr_01 == no_player then 
+      temp_plr_01.apply_traits(carrier_traits)
+      current_flag_or_bomb.number[0] = 12
+      sudden_death_enabled = 1
+      current_flag_or_bomb.timer[3].reset()
+      temp_plr_01.biped.set_waypoint_icon(bomb)
+      temp_plr_01.biped.set_waypoint_visibility(allies)
+      temp_plr_01.biped.set_waypoint_priority(high)
+      current_flag_or_bomb.set_waypoint_visibility(no_one)
+   end
+   if temp_plr_01 == no_player and current_flag_or_bomb.number[0] == 12 then 
+      current_flag_or_bomb.number[0] = 13
+      try_announce_is_carried = 0
+      current_flag_or_bomb.set_waypoint_icon(bomb)
+      current_flag_or_bomb.set_waypoint_visibility(everyone)
+      current_flag_or_bomb.set_waypoint_priority(high)
+      current_flag_or_bomb.number[1] = 0
+   end
+end
+
+-- Maintain objective IDs and sound emitters for bomb plant points:
+if current_obj_type == objective_type.bomb and not current_flag_or_bomb == no_object then 
+   alias current_index = temp_int_01
+   --
+   current_index = 1
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == current_phase then 
+         if current_flag_or_bomb.number[0] != 15 then 
+            current_object.number[4] = 0
+         end
+         if current_object.number[0] == 0 then 
+            current_object.number[0] = current_index
+            current_index += 1
+         end
+         if current_object.number[0] == 1 and current_object.sound_emitter == no_object then 
+            current_object.sound_emitter = current_object.place_at_me(sound_emitter_alarm_1, none, never_garbage_collect | suppress_effect, 0, 0, 5, none)
+         end
+         if current_object.number[0] == 2 and current_object.sound_emitter == no_object then 
+            current_object.sound_emitter = current_object.place_at_me(sound_emitter_alarm_2, none, never_garbage_collect | suppress_effect, 0, 0, 5, none)
+         end
+      end
+   end
+end
+
+-- Handle bomb arming:
+if  current_obj_type == objective_type.bomb
+and not current_flag_or_bomb == no_object
+and current_flag_or_bomb.number[0] == 12
+then 
+   alias bomb_carrier = temp_plr_01
+   alias not_arming   = temp_int_01
+   --
+   bomb_carrier = no_player
+   bomb_carrier = current_flag_or_bomb.try_get_carrier()
+   not_arming   = 1
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == current_phase and current_obj_type == objective_type.bomb then 
+         if not_arming == 1 then 
+            current_flag_or_bomb.set_progress_bar(0, no_one)
+            current_flag_or_bomb.timer[2].set_rate(100%)
+            current_object.timer[2].set_rate(100%)
+         end
+         if current_object.shape_contains(bomb_carrier.biped) then 
+            current_object.number[4] = 1
+            for each player do
+               if current_player.team == defenders and current_object.number[4] != 0 then 
+                  script_widget[0].set_visibility(current_player, true)
+               end
+            end
+            if current_object.number[0] == 1 and current_object.number[4] != 0 and announce_a_under_attack_throttle.is_zero() then 
+               game.play_sound_for(defenders, announce_a_under_attack, true)
+               announce_a_under_attack_throttle.reset()
+            end
+            if current_object.number[0] == 2 and current_object.number[4] != 0 and announce_b_under_attack_throttle.is_zero() then 
+               game.play_sound_for(defenders, announce_b_under_attack, true)
+               announce_b_under_attack_throttle.reset()
+            end
+            current_object.set_waypoint_priority(blink)
+            current_object.waypoint_for_enemies.set_waypoint_priority(blink)
+            not_arming = 0
+            current_object.set_progress_bar(2, mod_player, bomb_carrier, 1) -- show the arming progress bar to the player arming the bomb
+            current_flag_or_bomb.timer[2].set_rate(-100%)
+            current_object.timer[2] = current_flag_or_bomb.timer[2]
+            if current_flag_or_bomb.timer[2].is_zero() then 
+               temp_int_02 = attackers.number[0]
+               temp_int_02 *= 3 -- arming takes 25% of the offense timer; detonation, 75%
+               current_flag_or_bomb.timer[0] = temp_int_02
+               current_flag_or_bomb.number[0] = 15
+               send_incident(bomb_armed, attackers, defenders)
+               current_flag_or_bomb.detach()
+               current_flag_or_bomb.attach_to(current_object, 0, 0, 2, absolute)
+               current_object.timer[0] = current_flag_or_bomb.timer[0]
+               current_flag_or_bomb.set_scale(200)
+               current_flag_or_bomb.set_pickup_permissions(no_one)
+               current_object.timer[1] = current_flag_or_bomb.timer[1]
+               current_object.set_progress_bar(1, allies)
+               current_flag_or_bomb.set_waypoint_timer(0)
+               current_flag_or_bomb.timer[0].set_rate(-100%)
+               current_flag_or_bomb.set_waypoint_icon(bomb)
+            end
+         end
+      end
+   end
+end
+
+if current_obj_type == objective_type.bomb and not current_flag_or_bomb == no_object then -- bomb detonation
+   current_flag_or_bomb.set_invincibility(1)
+   if current_flag_or_bomb.number[0] == 15 then 
+      sudden_death_enabled = 1
+      if current_flag_or_bomb.timer[0].is_zero() then 
+         current_flag_or_bomb.set_invincibility(0)
+         current_flag_or_bomb.number[0] = 10
+         current_flag_or_bomb.kill(false)
+         send_incident(bomb_detonated, attackers, defenders)
+         for each player do
+            if current_player.team == attackers then 
+               send_incident(dlc_achieve_8, current_player, no_player) -- award "You Blew It Up!" achievement
+            end
+         end
+         objective_completed = 1
+         for each object with label "inv_objective" do
+            current_object.sound_emitter.delete()
+            current_object.number[4] = 0
+         end
+         last_announced_is_carried = 0
+         try_announce_is_carried = 0
+      end
+   end
+end
+
+for each team do -- handle bomb disarming (and float the arm timer up if the bomb is dropped)
+   if current_team.has_any_players() and current_obj_type == objective_type.bomb and not current_flag_or_bomb == no_object then 
+      if current_flag_or_bomb.number[0] == 13 then 
+         current_flag_or_bomb.timer[2].set_rate(100%)
+      end
+      if current_flag_or_bomb.number[0] == 15 then 
+         alias anyone_disarming = temp_int_01
+         --
+         current_flag_or_bomb.timer[1].set_rate(100%)
+         current_flag_or_bomb.set_waypoint_priority(high)
+         anyone_disarming = 0
+         for each player do
+            temp_obj_00 = no_object
+            temp_obj_00 = current_player.try_get_armor_ability()
+            if  current_player.team == defenders
+            and current_flag_or_bomb.shape_contains(current_player.biped)
+            and not temp_obj_00.is_of_type(armor_lock) -- 
+            or  not temp_obj_00.is_in_use()            -- defenders cannot disarm a bomb while using Armor Lock
+            then 
+               current_flag_or_bomb.timer[1].set_rate(-100%)
+               current_flag_or_bomb.set_waypoint_priority(blink)
+               current_flag_or_bomb.set_progress_bar(1, allies)
+               anyone_disarming = 1
+            end
+         end
+         for each player do -- attackers can contest the bomb and prevent disarming
+            if current_player.team == attackers and current_flag_or_bomb.shape_contains(current_player.biped) then 
+               current_flag_or_bomb.timer[1].set_rate(0%)
+               if anyone_disarming == 1 then 
+                  current_flag_or_bomb.set_waypoint_priority(blink)
+               end
+            end
+         end
+         if current_flag_or_bomb.is_out_of_bounds() or current_flag_or_bomb.timer[3].is_zero() or current_flag_or_bomb.timer[1].is_zero() then 
+            current_flag_or_bomb.delete()
+            send_incident(bomb_disarmed, all_players, all_players)
+            current_flag_or_bomb.number[1] = 0
+         end
+      end
+   end
+end
+
+if current_obj_type == objective_type.bomb and current_flag_or_bomb != no_object then -- handle bomb resetting
+   current_flag_or_bomb.timer[3].set_rate(100%)
+   if current_flag_or_bomb.number[0] == 13 then 
+      current_flag_or_bomb.timer[3].set_rate(-100%)
+      if current_flag_or_bomb.timer[3] < 6 then -- blink the waypoint when it's close to resetting
+         current_flag_or_bomb.set_waypoint_priority(blink)
+      end
+      for each object with label "inv_no_core_zone" do -- force instant reset if it's in an INV_NO_CORE_ZONE
+         if current_object.shape_contains(current_flag_or_bomb) then 
+            current_flag_or_bomb.timer[3] = 0
+         end
+      end
+      if current_flag_or_bomb.is_out_of_bounds() then -- force instant reset if it's out of bounds
+         current_flag_or_bomb.timer[3] = 0
+      end
+      if current_flag_or_bomb.timer[3].is_zero() then 
+         current_flag_or_bomb.delete()
+         send_incident(bomb_reset, all_players, all_players)
+         current_flag_or_bomb.number[1] = 0
+      end
+   end
+end
+
+for each team do -- track current bomb carrier
+   alias bomb_carrier = temp_plr_01
+   if current_obj_type == objective_type.bomb and current_team.has_any_players() then 
+      bomb_carrier = no_player
+      if  not current_flag_or_bomb == no_object
+      and current_flag_or_bomb.number[0] == 12
+      and current_flag_or_bomb.number[1] == 0
+      then 
+         bomb_carrier = current_flag_or_bomb.try_get_carrier()
+         if not bomb_carrier == no_player then 
+            attackers.object[0].set_waypoint_priority(high)
+            current_flag_or_bomb.number[1] = 1
+            bomb_carrier.biped.set_waypoint_visibility(allies)
+            bomb_carrier.biped.set_waypoint_priority(high)
+            current_flag_or_bomb.set_waypoint_icon(none)
+            current_flag_or_bomb.number[2] = 0
+            try_announce_is_carried = 1
+            current_carrier = temp_plr_01
+         end
+      end
+   end
+end
+
+for each team do -- prep to announce bomb dropped
+   alias bomb_carrier = temp_plr_01
+   if current_obj_type == objective_type.bomb and current_team.has_any_players() then 
+      bomb_carrier = no_player
+      if  not current_flag_or_bomb == no_object
+      and current_flag_or_bomb.number[0] == 13
+      and current_flag_or_bomb.number[2] == 0
+      then 
+         bomb_carrier = current_flag_or_bomb.try_get_carrier()
+         if bomb_carrier == no_player then 
+            try_announce_is_carried = 0
+            attackers.object[0].set_waypoint_priority(low)
+            current_flag_or_bomb.number[2] = 1
+         end
+      end
+   end
+end
+
+for each player do -- cooldown traits (bomb)
+   alias current_carrier = temp_plr_01
+   if current_obj_type == objective_type.bomb then 
+      current_carrier = no_player
+      current_carrier = current_flag_or_bomb.try_get_carrier()
+      if not current_player == current_carrier and current_player.carrier_cooldown_timer > 0 then 
+         current_player.carrier_cooldown_timer.set_rate(-100%)
+         if not current_player.carrier_cooldown_timer.is_zero() then 
+            current_player.apply_traits(cooldown_traits)
+         end
+      end
+   end
+end
+
+for each player do -- award Bomb Carrier Kill medal
+   alias killer = temp_plr_00
+   if current_obj_type == objective_type.bomb and current_carrier.killer_type_is(kill) then 
+      killer = current_carrier.try_get_killer()
+      send_incident(bomb_carrier_kill, killer, current_carrier)
+      current_carrier = no_player
+   end
+end
+
+for each object with label "none" do
+   current_object.delete()
+end
+
+if opt_animate_cinematic_objects == 0 then 
+   for each object with label "inv_cinematic" do
+      current_object.delete()
+   end
+end
+
+for each object with label "inv_objective" do
+   if not initial_territory_blink_timer.is_zero() then 
+      current_object.set_waypoint_priority(blink)
+      current_object.waypoint_for_enemies.set_waypoint_priority(blink)
+   end
+   temp_obj_00 = current_object.waypoint_for_enemies
+   temp_obj_00.timer[0] = current_object.timer[0]
+end
+
+do
+   global.timer[1].set_rate(100%)
+   if round_timer_state >= timer_state.will_end_round then 
+      global.timer[1].set_rate(-100%)
+      for each object with label "inv_objective" do
+         current_object.waypoint_for_enemies.delete()
+         current_object.sound_emitter.delete()
+         current_object.delete()
+      end
+   end
+end
+
+if global.timer[1].is_zero() then 
+   game.end_round()
+end
+
+-- Manage round timer (sudden death, grace period, etc.)
+if not game.round_timer.is_zero() then 
+   game.grace_period_timer = 0
+   sudden_death_announce_throttle.set_rate(-100%)
+end
+if game.round_timer.is_zero() and not round_timer_state == timer_state.victory then 
+   if sudden_death_enabled == 1 then 
+      game.sudden_death_timer.set_rate(-100%)
+      game.grace_period_timer.reset()
+      if game.sudden_death_time > 0 and game.grace_period_timer > game.sudden_death_timer then 
+         game.grace_period_timer = game.sudden_death_timer
+      end
+      if sudden_death_announce_throttle.is_zero() then 
+         send_incident(sudden_death, all_players, all_players)
+         sudden_death_announce_throttle.reset()
+         sudden_death_announce_throttle.set_rate(-100%)
+      end
+   end
+   if sudden_death_enabled == 0 then 
+      game.grace_period_timer.set_rate(-100%)
+      if game.grace_period_timer.is_zero() and not round_timer_state == timer_state.victory then 
+         round_timer_state = timer_state.will_end_round
+      end
+   end
+   if game.sudden_death_timer.is_zero() and not round_timer_state == timer_state.victory then 
+      round_timer_state = timer_state.will_end_round
+   end
+end
+
+on local: do
+   set_scenario_interpolator_state(1, 0) -- disable sound emitter 1
+   set_scenario_interpolator_state(2, 0) -- disable sound emitter 2
+   set_scenario_interpolator_state(4, 0)
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == current_phase and current_object.number[0] == 1 and current_object.number[4] > 0 then 
+         set_scenario_interpolator_state(1, 1) -- enable sound emitter 1
+      end
+   end
+   for each object with label "inv_objective" do
+      if current_object.spawn_sequence == current_phase and current_object.number[0] == 2 and current_object.number[4] > 0 then 
+         set_scenario_interpolator_state(2, 1) -- enable sound emitter 2
+      end
+   end
+   if current_phase > 2 then 
+      set_scenario_interpolator_state(4, 1)
+   end
+end
+
+do -- announce bomb/core take/drop
+   announce_is_carried_cooldown.set_rate(-100%)
+   if announce_is_carried_cooldown.is_zero() then 
+      if current_obj_type == objective_type.flag then 
+         if last_announced_is_carried == 0 and try_announce_is_carried == 1 then 
+            temp_plr_01 = no_player
+            temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+            send_incident(inv_core_grabbed, temp_plr_01, all_players)
+            last_announced_is_carried = 1
+            announce_is_carried_cooldown.reset()
+         end
+         if last_announced_is_carried == 1 and try_announce_is_carried == 0 then 
+            send_incident(inv_core_dropped, current_carrier, all_players)
+            last_announced_is_carried = 0
+            announce_is_carried_cooldown.reset()
+         end
+      end
+      if current_obj_type == objective_type.bomb then 
+         if last_announced_is_carried == 0 and try_announce_is_carried == 1 then 
+            temp_plr_01 = no_player
+            temp_plr_01 = current_flag_or_bomb.try_get_carrier()
+            send_incident(bomb_taken, temp_plr_01, all_players)
+            last_announced_is_carried = 1
+            announce_is_carried_cooldown.reset()
+         end
+         if last_announced_is_carried == 1 and try_announce_is_carried == 0 then 
+            send_incident(bomb_dropped, current_carrier, all_players)
+            last_announced_is_carried = 0
+            announce_is_carried_cooldown.reset()
+         end
+      end
+   end
+end
+
+on host migration: do -- reset cinematic objects' device positions on host migration
+   for each object with label "inv_cinematic" do
+      if current_object.spawn_sequence == 1 then 
+         current_object.set_device_actual_position(1)
+      end
+   end
+end
+
+do -- delete leftover flags and bombs
+   for each object with label all_unsc_data_cores do
+      if current_obj_type != objective_type.flag then 
+         current_object.delete()
+      end
+   end
+   for each object with label all_covenant_bombs do
+      if current_obj_type != objective_type.bomb then 
+         current_object.delete()
+      end
+   end
+end

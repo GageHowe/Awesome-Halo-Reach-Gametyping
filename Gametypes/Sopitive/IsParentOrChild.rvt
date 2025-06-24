@@ -1,0 +1,33 @@
+-- This can be used in conjunction with the velocity script to only be used with objects that are considered to be the parent object. Since you don't want to try applying a velocity to any object that is attached to something already (like weapons, spartan knife, armor abilities, warthog turrets, scorpion cannons etc) you can filter those objects out and apply the velocity to only the relevant objects.
+-- The velocity script will detach objects when called on them so if you have a zone that applies a velocity to objects, it would give the velocity to all of the objects in that shape and detach them from the parent which is not ideal.
+
+function IsParent()
+    for each object do
+        alias lastSpot = allocate temporary object
+        alias newSpot = allocate temporary object
+        alias moved = allocate temporary object
+        lastSpot = current_object.place_between_me_and(current_object, sound_emitter_alarm_2, 0)
+        newSpot = current_object.place_between_me_and(current_object, sound_emitter_alarm_2, 0)
+        newSpot.attach_to(lastSpot, 0, 0, 100, relative)
+        current_object.attach_to(newSpot, 0, 0, 0, relative)
+        moved = current_object.place_between_me_and(current_object, sound_emitter_alarm_2, 0)
+        alias dist = allocate temporary number
+        dist = moved.get_distance_to(lastSpot)
+        if dist > 0 then
+            --This object is not attached to anything already
+            current_object.detach()
+            current_object.attach_to(lastSpot, 0, 0, 0, relative)
+            current_object.detach()
+        end
+        if dist == 0 then
+            --This object is attached to something
+            
+        end
+        lastSpot.delete()
+        moved.delete()
+    end
+end
+
+on init: do
+    IsParent()
+end

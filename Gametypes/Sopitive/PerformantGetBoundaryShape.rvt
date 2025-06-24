@@ -1,0 +1,77 @@
+-- The max number of recursions per side of the shape has been reduced from 1010 recursions to only 10 recursions per side, or a max of 40 recursions per object. I don't know if it uses more actions, but it is significantly more performant than the previous method.
+-- It gets the values for the shape so you can read the raw value. Its used in Impact Editor to set extra parameters in Forge. I am using the old version in it, but at some point I may update it to use this refined version
+-- That was one of the laggiest parts about it is you would have roughly 300-400 recursions for every object you spawned that used shape data which was usually static arrays or spawners with offset values.
+-- We can read some forge properties of an object directly in the script. e.g. current_object.spawn_sequence, current_object.has_forge_label("scale"), current_object.team
+-- But there's no script actions to allow us to read other useful object forge properties, like Spawn Time and shape boundary dimensions. Which is a pity because it would allow us to set up more complex things in forge if we could read more forge properties with the script. 
+-- Sopitive's script above cleverly figures out an object's shape boundary manually with script. It does this by spawning virtual objects and moving them out in a line, counting how many steps it takes until those objects are no longer inside the shape boundary.
+-- Shape boundary is a particularly useful property for gametype modding because it has 4 highly configurable 'numbers' stored within it which could all be used to convey different information from forge to the gametype. Imagine if every forge object had 5 different 'spawn sequence' settings which could each be set between 0 and 100 independently. That's effectively what the above script allows us to have 🙂 
+
+alias tempGlobalObj = allocate global.object
+alias tempGlobalObj2 = allocate global.object
+alias tempGlobalObj3 = allocate global.object
+alias tempGlobalNum = allocate global.number
+alias tempGlobalNum2 = allocate global.number
+alias tempGlobalNum3 = allocate global.number
+alias shapeObj = tempGlobalObj
+alias tracer = tempGlobalObj2
+alias max = tempGlobalNum
+alias min = tempGlobalNum2
+alias tester = tempGlobalObj3
+alias width = allocate object.number
+alias length = allocate object.number
+alias top = allocate object.number
+alias bottom = allocate object.number
+
+do
+  min = 1
+  max = 1009
+end
+
+function FindShapeValue()
+  if tester == no_object then
+    tester = shapeObj.place_between_me_and(shapeObj, sound_emitter_alarm_2, 0)
+  end
+  if min >= max then
+    tracer.delete()
+    tester.delete()
+    shapeObj.delete()
+  end
+  if min < max then
+    alias mid = tempGlobalNum3
+    mid = min
+    mid += max
+    mid += 1
+    mid /= 2
+    shapeObj.set_scale(mid)
+    shapeObj.copy_rotation_from(shapeObj, true)
+    tester.attach_to(tracer, 0, 0, 0, relative)
+    tester.detach()
+    if current_object.shape_contains(tester) then
+      min = mid
+    end
+    if not current_object.shape_contains(tester) then
+      max = mid
+      max -= 1
+    end
+    FindShapeValue()
+  end
+end
+--Get each shape value
+function GetBoundaryShape()
+    tracer = shapeObj.place_between_me_and(shapeObj, sound_emitter_alarm_2, 0)
+    tracer.attach_to(shapeObj, 100, 0, 0, relative)
+    FindShapeValue()
+    current_object.length = min --Length
+    tracer.detach()
+    tracer.attach_to(shapeObj, 0, 100, 0, relative)
+    FindShapeValue()
+    current_object.width = min --width
+    tracer.detach()
+    tracer.attach_to(shapeObj, 0, 0, 100, relative)
+    FindShapeValue()
+    current_object.top = min --top
+    tracer.detach()
+    tracer.attach_to(shapeObj, 0, 0, -100, relative)
+    FindShapeValue()
+    current_object.bottom = min --bottom
+end

@@ -1,0 +1,144 @@
+-------- Rabid Nov 2024 efficient 330x scale     no-function version.   Cleaned for sharing.
+
+alias host_ID = 1
+alias client_ID = 0
+--alias client_ID = host_ID   -- For singleplayer testing. Must be commented out for multiplayer.
+
+
+alias resizing_primed = 1
+alias resizing_finished = 2
+alias has_resized = object.number[1]            -- must be local priority
+alias scale_anchor = object.object[0]
+alias temp_obj0 = global.object[8]
+
+-- Permanent numbers
+alias local_tick_counter = global.number[6]     -- must be local priority
+alias host_indicator = global.number[0]        -- must be local priority
+-- Temporary numbers
+alias cumulative_total = global.number[8]
+alias recursion_count = global.number[9]
+alias three_percent = global.number[10]
+alias point_four_percent = global.number[1]
+
+declare local_tick_counter with network priority local
+declare object.has_resized with network priority local
+declare host_indicator with network priority local
+
+
+
+function exponential_scale_330x()
+   if recursion_count > 0  then
+      recursion_count -= 1
+      three_percent = cumulative_total
+      three_percent /= 33
+      point_four_percent = cumulative_total
+      point_four_percent /= 228
+      cumulative_total += three_percent
+      cumulative_total += point_four_percent
+      exponential_scale_330x()
+   end
+end
+
+on local: do
+   -- Scale LOCAL tick counter. Hoping this will help scale work for late joiners. 
+   local_tick_counter += 1
+   ---- 330x Scale   Nov 2024 efficicent rewrite
+   -- Part 1: create anchors
+   -- Doesn't need to be on local if the anchor object is synced. Clients just need to know the nested anchor to be able to re-attach it. 
+   -- having this on local might cause scaled objects to create 2 flag stands each (one spawned by host, one spawned by client), which is bad for performance reasons. Unconfirmed. I don't think this happens in practice.
+   for each object with label "scale" do
+      -- Purple team = No physics box. For 1% lights, sky seraphs.
+      -- Green team = shadow caster
+      if current_object.team == team[4] or current_object.team == team[2] then					-- or current_object.scale_anchor != no_object
+         current_object.set_invincibility(1)
+         -- second condition is to ensure only host creates a flag stand, tho I haven't confirmed if clients ever creat their own. They only would if there's some delay in host telling them the object's scale_anchor exists.
+         if current_object.scale_anchor == no_object then         -- and global.object[4].is_of_type(hill_marker)
+            current_object.scale_anchor = current_object.place_between_me_and(current_object, flag_stand, 0)
+            current_object.scale_anchor.set_scale(1)			-- don't do this to the shadow casting warthog_turret; it pixelates the shadow.
+            if current_object.team == team[2] then
+               current_object.scale_anchor.delete()
+               current_object.scale_anchor = current_object.place_between_me_and(current_object, heavy_barrier, 0)
+               current_object.scale_anchor.set_scale(50)		-- if shadow is too pixelated, increase this value or remove it entirely.
+               --if current_object.scale_anchor == no_object then			-- removed for space
+                  --current_object.scale_anchor = current_object.place_between_me_and(current_object, warthog_turret, 0)	-- non-forge world maps
+               --end
+            end
+         end
+      end
+      -- Orange team = No collision / hitbox. Same for any other scale objects within its shape boundary.
+      if current_object.team == team[3] then
+         alias sequence_object = temp_obj0
+         sequence_object = current_object
+         for each object with label "scale" do
+            if sequence_object.shape_contains(current_object) or sequence_object == current_object then      -- 2nd condition: still include the object itself if it has no shape boundary.
+               -- hide on host. Makes it permeable to projectiles.
+               current_object.set_hidden(1)
+               -- attach to sound_emitter on client. Makes it permeable to projectiles with its mesh still visible.
+               -- exclude host so that rotation data doesn't get compressed when synced to clients.
+               if host_indicator == client_ID then
+                  current_object.set_hidden(0)
+                  if current_object.scale_anchor == no_object then
+                     current_object.scale_anchor = current_object.place_between_me_and(current_object, sound_emitter_alarm_2, 0)
+                  end
+               end
+            end
+         end
+      end
+   end
+   -- Part 2: object resizing
+   for each object with label "scale" do
+      alias resized_object = current_object        -- if you want to set up scaling shape boundaries, set this to a different variable and adapt the below script to have something similar to the above orange team shape.
+      alias sequence_object = current_object
+      -- Late-spawning objects need to become scripted-data objects to resize
+      if resized_object.has_resized == 0 and local_tick_counter > 10 and not resized_object.shape_contains(resized_object) or resized_object.team == team[3] then
+         resized_object.has_resized = resizing_primed
+      end
+      -- Objects are present at round start or which have just been marked for scaling:
+      if resized_object.has_resized == resizing_primed or local_tick_counter <= 10 then
+         -- Boolean: scripted-data objects.
+         if resized_object.has_resized == resizing_primed then
+            resized_object.has_resized = resizing_finished
+         end
+         -- Boolean: free objects.        -- setting an object's shape doesn't make it a scripted-data object, so this is a free way to mark the object with a boolean to indicate that it has already scaled.
+         if resized_object.team != team[3] then   -- condition needed to stop orange scale zones changing.
+            resized_object.set_shape(cylinder, 100,100,100)
+         end
+         -- 330x exponential scale
+         cumulative_total = 100
+         recursion_count = sequence_object.spawn_sequence
+         if sequence_object.spawn_sequence < 0 then 
+            recursion_count *= 5
+            cumulative_total += recursion_count
+            -- Downsizing
+            if sequence_object.spawn_sequence <= -20 then 
+               recursion_count = sequence_object.spawn_sequence
+               recursion_count += 201
+               if sequence_object.spawn_sequence == -20 then
+                  cumulative_total = 1
+                  --if resized_object.is_of_type(grid) then
+                  if resized_object.team != team[4] then       -- only purple team doesn't hide when 1% scale. Set lights to purple team to maintain illumination.
+                     resized_object.set_hidden(true)
+                  end
+               end
+            end
+         end
+         -- Upsizing
+         if sequence_object.spawn_sequence < -20 or sequence_object.spawn_sequence > 0 then 
+            cumulative_total = 100
+            -- COSMIC scale.
+            if sequence_object.team == team[0] then
+               cumulative_total = 32732
+            end
+            exponential_scale_330x()
+         end
+         -- Locally detach scaled objects from their anchor (flag stand, warthog turret, sound emitter) before scaling and copying rotation. Necessary for scale to update for clients. Reattaches straight after.
+         -- Semi redundant condition. Only needed if something has "scale" label while get attached to something else, such as a carried weapon or armor ability.
+         --if resized_object.scale_anchor != no_object then      -- this includes purple (flag stand), green (shadow caster), and orange-shaped-contained (sound emitter on client)
+         resized_object.detach()
+         --end
+         resized_object.set_scale(cumulative_total)
+         resized_object.copy_rotation_from(resized_object, false)
+         resized_object.attach_to(resized_object.scale_anchor, 0,0,0,relative)         -- might need to only do this where resized_object.scale_anchor != no_object, not sure. Need to check.
+      end
+   end
+end

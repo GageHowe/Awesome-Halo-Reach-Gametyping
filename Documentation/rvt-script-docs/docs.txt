@@ -1,0 +1,1269 @@
+
+Basic syntax
+
+Back when ReachVariantTool was made, only Bungie and 343 Industries knew what Megalo truly looked like. However, community reverse-engineers figured out Megalo's bytecode, and this made it possible for members of the public to design their own script languages that compile to the same bytecode. That is what was done for ReachVariantTool. Since then, 343 Industries released MegaloEdit, an official editor for Megalo which uses the same language that Bungie used internally.
+
+The RVT dialect of Megalo is loosely inspired by Lua syntax, though there are quite a few differences such as the use of zero-indexed collections. It is not compatible with the "true" Megalo language used in MegaloEdit.
+Literals
+Numbers
+
+Numbers can be defined with any of the following syntaxes:
+
+12345
+    Defines the decimal value 12345.
+0x3039
+    Defines the hexadecimal value 0x3039, which is equal to decimal 12345.
+0b11000000111001
+    Defines a binary value which is equal to decimal 12345.
+
+Strings
+
+Megalo scripts can contain strings. A string is any value that starts and ends with ", ', or `. The value must start and end with the same symbol.
+
+Inside of a string, backslashes have special meaning: they can be used to indicate special characters, or to "escape" certain characters from processing.
+
+\xHH
+    Treats HH as a hexadecimal character code. The entire escape sequence will be replaced with the Unicode character that has that code. You must always provide a two-digit hexadecimal number. 
+\uHHHH
+
+    Treats HHHH as a hexadecimal character code. The entire escape sequence will be replaced with the Unicode character that has that code. You must always provide a four-digit hexadecimal number.
+
+    There are special codes that can be used to show Halo-specific icons and symbols.
+\"
+    Inserts a double-quote mark into the string. You can use this to include double-quotes in the text of a string that is itself wrapped in double-quotes, e.g. "And then he said, \"Hello!\"" 
+\'
+    Inserts a single-quote mark into the string. You can use this to include single-quotes in the text of a string that is itself wrapped in single-quotes, e.g. 'But that\'s not very nice.' 
+\`
+    Inserts a backtick into the string. You can use this to include backticks in the text of a string that is itself wrapped in backticks, e.g. `Backticks are often used instead of apostrophes, but I s\`pose that's a bit odd.` 
+\[any other character]
+    Just inserts the given character.
+\\
+    Inserts a real backslash into the string.
+
+Statements
+
+Statements in a Megalo script can be divided into three categories: conditions, actions, and blocks. There is no statement separator character; statements are separated with whitespace, and the allowed syntax is limited in order to enable this. Expressions are not supported; for example, the following statement is interpreted as an assignment (a = b) followed by an unexpected operator:
+
+a = b + c
+
+-- The above is interpreted as two statements: "a = b" and "+ c".
+-- The supported syntax is:
+-- a = b
+-- a += c
+
+Blocks
+
+The following block types are available:
+
+do ... end
+    A generic block.
+enum ... end
+    An user-defined enum definition.
+for ... do ... end
+    A piece of code which should be executed multiple times in a row, with specific information made available each time. More details here.
+function ... end
+    A user-defined function which can be "called," or triggered to run, from different parts of the script. More details here.
+if ... altif ... alt ... end
+    A piece of code which should execute if specific conditions are met. More details here.
+
+Top-level blocks (that is, blocks not nested inside of other blocks) can be prefixed with an event name.
+Actions
+
+An action is any statement that doesn't appear in an if-block's condition list. Actions can begin with a keyword, or they can take one of the following forms:
+
+    function(...)
+    variable = function(...)
+    variable = value
+
+You can call user-defined functions or hardcoded "action" functions. You cannot call hardcoded "condition" functions.
+Conditions
+
+Conditions are terms in an if-block's condition list. They must take one of the following two forms:
+
+    function(...)
+    value == other_value
+
+Conditions can be prefixed with the word not to invert them. Conditions must be separated from each other with the word or or the word and.
+
+You can call hardcoded "condition" functions here, but not user-defined functions or any hardcoded "action" functions.
+Variables
+
+Megalo supports the following variable types:
+
+    Number
+    Object
+    Player
+    Team
+    Timer
+
+Variables are either global or nested. There is one "global" set of variables that is accessible at all times, and every object, player, and team is also capable of holding its own set of variables. Variables can be referred to by no more than two levels of depth:
+
+global.player[0]                     -- valid
+global.player[0].player[1]           -- valid
+global.player[0].player[1].player[2] -- invalid
+
+In this particular Megalo dialect, you cannot define your own variables; there are a fixed number available. However, you can give names to variables, and variable declarations can be used to set a variable's networking priority and initial value.
+Properties
+
+A property is a member of a variable. Properties can appear in any place where a variable of the same type can be used. You cannot access variables or other properties through a property.
+
+current_player.team                 -- valid
+current_player.biped.spawn_sequence -- invalid (var.property.property)
+current_player.team.number[0]       -- invalid (var.property.var)
+
+Most properties cannot be accessed through a nested variable. The biped property on player variables is an exception.
+
+current_player.team            -- valid   (var.property)
+current_player.player[0].team  -- invalid (var.var.property)
+
+current_player.biped           -- valid (var.biped)
+current_player.player[0].biped -- valid (var.var.biped)
+
+Most properties do not have indices. There is one exception: the script_stat property on players and teams. There, you must use an index to specify the target stat:
+
+current_player.script_stat[0]
+
+Accessors
+
+An accessor uses similar syntax to a property, but can only appear in assignment statements. Internally, these exist as "getter" and "setter" functions. As such, you can use accessors on variables and properties.
+
+current_object.shields       += 50 -- valid; access through variable
+current_player.biped.shields += 50 -- valid; access through property
+
+Most accessors have both getters and setters. Some do not, which means that they can only appear on the appropriate side of an assignment statement.
+
+current_object.max_shields += 50              -- valid; there is a setter for this
+global.number[0] = current_object.max_shields -- invalid; there is no getter for this
+
+From a language design standpoint, accessors were preferred over getter/setter functions in cases where the internal setter takes the same range of assignment operators as an assignment statement. Although the parser as currently designed could accept an assignment operator as an argument (e.g. foo.set_bar(+=, 5)), this was avoided for consistency with almost every other programming language ever made.
+
+Aliases
+
+Megalo only supports a limited number of variables; however, you can define aliases, or custom names, for each variable. Once defined, an alias can be used in any context where the original variable could be used.
+
+alias is_zombie = player.number[0]
+
+for each player do
+   if current_player.is_zombie == 1 then
+      --
+      -- ...
+      --
+   end
+end
+
+You can also alias certain values that are specific to argument types, such as object types:
+
+alias temp_int_00   = global.number[0]
+alias objective_obj = flag
+
+for each team do
+   alias created = temp_int_00
+   --
+   created = 0
+   for each object with label "ctf_return" do
+      if created == 0 and current_object.team == current_team then
+         current_object.place_at_me(objective_obj, none, never_garbage_collect, 0, 0, 0, none)
+         created = 1
+      end
+   end
+end
+
+Features of aliases
+Absolute or relative
+
+Aliases can be "absolute" or "relative." An absolute alias refers to an integer constant or to a global value, while a relative alias refers to a nested variable.
+
+alias absolute_constant = 5
+
+alias absolute_variable = global.number[0]
+
+if absolute_variable == 1 then
+   -- ...
+end
+
+--
+-- Relative alias:
+--
+
+alias relative_variable = player.number[0]
+
+for each player do
+   if current_player.relative_variable == 1 then
+      -- ...
+   end
+end
+
+In that code example, we define relative_variable as an alias that can be accessed on all player-type variables; the alias refers to any given player's nested number[0] variable.
+Scoping
+
+Aliases are block-scoped. This means that they only exist inside of the block of code they were defined in; they go out of scope — they stop existing — past the end of that block.
+
+-- Let's mark a variable for temporary use, with an alias.
+alias temporary_number_variable = global.number[0]
+
+for each player do
+   if current_player.killer_type_is(kill) then
+      alias death_type = temporary_number_variable
+      
+      death_type = current_player.get_death_damage_type()
+      if death_type == enums.damage_reporting_type.dmr then
+         --
+         -- (current_player) was killed with a DMR.
+         --
+      end
+   end
+end
+
+-- The "death_type" alias isn't available here, so it doesn't make a mess.
+
+Aliases that are defined outside of all blocks will never go out of scope; they are always in-scope — always available from the current scope.
+Shadowing
+
+Aliases shadow each other. That is: if you define multiple aliases with the same name, the most recently defined one (i.e. the one furthest down in the code) will prevent access to the others.
+
+global.number[0] = 3
+
+alias example_alias = 1
+alias example_alias = 2
+alias example_alias = 3 -- This alias shadows the others...
+
+if global.number[0] == example_alias then
+   -- ...so code in this block will run.
+end
+
+Shadowing is affected by scoping:
+
+alias example = 1
+
+for each player do
+   alias example = 5 -- Shadows the other alias.
+   
+   current_player.number[0] = example
+end
+-- The "shadowing" alias isn't in-scope anymore. The alias that was once shadowed 
+-- is now available: `example` is now `1`.
+
+Allocation to aliases
+
+Variables can be allocated to aliases dynamically. That is: you can ask for a variable of a given type, without having to manually specify the variable's index.
+
+alias absolute_alias = allocate global.number
+
+alias relative_alias = allocate player.number
+
+For these alias declarations, ReachVariantTool will look for any variable of the requested type that is not already pointed to by an alias that is in-scope, and use the first such variable that it finds. If no such variables remain (i.e. every variable of the type you've asked for is already aliased), then a compiler error will occur.
+
+alias some_alias = global.number[0]
+
+-- The `global.number[0]` variable is referred to by another alias, so while 
+-- there's no guarantee that `example` will refer to any specific global.number 
+-- variable, there *is* a guarantee that it *won't* refer to `global.number[0]`.
+alias example  = allocate global.number
+
+You can also allocate temporary variables using a special syntax:
+
+alias my_temporary_variable = allocate temporary number
+
+Collision warnings
+
+If you accidentally point an alias at a variable that was allocated to another alias, the compiler will warn you.
+
+-- Assume this is the only code in the entire script.
+
+alias example_allocated = allocate global.number
+-- Because no other global.number variables have been aliased, this will be 
+-- the global.number[0] variable.
+
+alias example_explicit = global.number[0]
+-- This will generate a warning. The compiler will tell you that the other 
+-- alias, `example_allocated`, just happened to end up using the variable 
+-- that you're now also assigning to this alias.
+
+alias example_borrowed = example_allocated
+-- This does not generate a warning. You clearly intend for both of these 
+-- aliases to point to the same variable, because you're making the one 
+-- alias point to the other alias.
+
+The reason this warning exists is because if you run into this situation, it likely won't be on purpose. While it is possible to predict which variable will be allocated to any given alias, the whole point of allocating variables to aliases (as opposed to choosing variables manually) is that you shouldn't actually have to care what variable ends up in that alias.
+
+If you get this warning, you would generally want to either allocate variables to aliases after all manually-set aliases, or change the manually-set alias to one that allocates a variable.
+User-defined functions
+
+Allocation-to-aliases works inside of user-defined functions; however, there are technical limitations that arise as a result of flaws in ReachVariantTool's design.
+
+If a user-defined function is in scope, and the function definition contains aliases, then none of the aliased variables can be allocated to a new alias until the function goes out of scope. This is an exception to the normal rules for allocation-to-aliases, and is a safety measure to prevent variable collisions in situations like the following:
+
+function some_helper_function()
+   alias local_variable = allocate temporary number
+   
+   local_variable = 5
+end
+
+alias some_important_variable = allocate temporary number
+some_important_variable = 1
+
+some_helper_function()
+
+if some_important_variable != 1 then
+   game.show_message_to(all_players, none, "Oh no!")
+end
+
+In that code snippet, we allocate a temporary variable to an alias, local_variable, inside the function. However, once we reach the end of the function body, that alias is, technically, out of scope. The only way to prevent some_important_variable from accidentally reusing that same variable — leading to a variable collision, where calling the function accidentally clobbers data in the caller — is to make it so that variables that are aliased in any in-scope function are reserved.
+
+This is a very imperfect workaround. In the following situation, for example, both of the user-defined functions are forced to use separate variables even though there's no risk of a collsiion between them (because neither function calls the other):
+
+function first()
+   alias first_alias = allocate temporary number
+end
+
+function second()
+   alias second_alias = allocate temporary number
+end
+
+This is all necessary because of technical limitations in ReachVariantTool's design: it only reads your code once, and it never backtracks to revise what it's compiled. When it sees the definition of second_alias, it hasn't yet read the rest of second(), so it doesn't know for sure whether second() calls first(); it only knows that second() can call first(), so it gives second() a separate variable in order to avoid any potential collisions.
+
+A side-effect of this is that if you define a function outside of any other block, and that function allocates temporary variables, then you will accidentally reserve those variables for the entire rest of the script, preventing any other code from reusing them. One fix for this is to nest your functions in whatever blocks of code actually use them.
+Rules for alias names
+
+An alias's name can't begin with a numeric digit, and can't contain square brackets or periods.
+
+Broadly speaking, an alias can't shadow anything built-in:
+
+--
+-- These next few rules apply to both relative and absolute aliases, even though 
+-- relative aliases wouldn't *always* shadow built-ins in these cases.
+--
+
+-- ERROR: An alias's name can never be the name of a keyword.
+alias do       = player.number[0] -- relative will fail
+alias if       = global.number[0] -- absolute will fail
+alias allocate = allocate temporary number -- fails
+
+-- ERROR: An alias's name can never be a namespace name.
+alias enums = player.number[0] -- relative will fail
+alias game  = global.number[0] -- absolute will fail
+
+-- ERROR: An alias's name can never be the name of a built-in type.
+alias player        = global.number[0]
+alias timer         = global.number[0]
+alias script_traits = global.number[0]
+alias script_widget = global.number[0]
+
+--
+-- The above rules apply even if the alias is relative. The below rules take into 
+-- account whether the alias is relative or absolute.
+--
+
+-- ERROR: Shadows non-namespaced built-in values
+alias none            = global.number[0] -- a value for several different types
+--
+alias announce_slayer = global.number[0] -- a  Sound value
+alias box             = global.number[0] -- a  Shape value
+alias enemies         = global.number[0] -- a  Player Set value
+alias warthog         = global.number[0] -- an Object Type value
+--
+-- Note that `alias none = player.number[0]` would succeed, because `player.none` 
+-- doesn't a shadow built-in value name.
+
+-- ERROR: Shadows action `rand`
+alias rand = global.number[0]
+
+-- ERROR: Shadows action `object.set_waypoint_visibility`
+alias set_waypoint_visibility = object.number[0]
+
+-- ERROR: Shadows condition `object.shape_contains`
+alias shape_contains = object.number[0]
+
+-- ERROR: Shadows property `player.biped`
+alias biped = player.number[0]
+
+-- ERROR: Shadows access to `player.timer` variables
+alias timer = player.number[0]
+
+
+For-loops
+
+A "for-each loop" allows you to execute a piece of code multiple times, with it able to access and process some object in a collection each time. Megalo offers a few types of for-each loops:
+
+for each object
+    Process every object on the map.
+for each object with label ...
+    Process every object on the map that matches a given Forge label.
+for each player
+    Process every player currently participating in the match.
+for each player randomly
+    Process every player in a random order.
+for each team
+    Process every team defined in the gametype, as well as Neutral Team.
+
+For each object
+
+This block loops over every object on the map. You can access the object being processed using current_object.
+For each object with label
+
+This block loops over every object on the map that matches a given Forge label. The label can be specified as a string literal containing the label's name, or as an integer constant denoting the index of the Forge label in the game variant's Forge label list. You can access the object being processed using current_object.
+For each player
+
+This block loops over every player currently in the match. You can access the player being processed using current_player.
+For each player randomly
+
+This block loops over every player currently in the match, in a random order. You can access the player being processed using current_player.
+For each team
+
+This block loops over every team currently in the match. You can access the team being processed using current_team.
+
+
+If-statements
+
+If you want to run a piece of code only when certain conditions are met, you should use an if-statement:
+
+for each player do
+   if current_player.team == team[0] then
+      --
+      -- ... do something ...
+      --
+   end
+end
+
+An if-statement typically consists of the word "if," followed by one or more conditions. Each condition is either a comparison statement or a function call. Conditions must be separated from each other by the word "or" or the word "and." A condition may be prefixed with the word "not". After the conditions, you must write the word "then".
+
+Conditions are executed in sequence. You cannot adjust the order of operations e.g. by using parentheses. If you want to test an expression like "(A and B) or (C and D)," then you have two options:
+
+    Initialize a variable to 0. Set it to 1 if "A and B." Set it to 1 if "C and D." If the variable is 1, then run your code.
+    Write two if-statements with your code duplicated inside of them. The first if-statement should test "A and B." The second if-statement should test "not A or not B and C and D."
+
+Alt and alt-if
+
+Megalo does not have any built-in "else" or "elseif" statements. However, the Megalo dialect used by ReachVariantTool offers similar statements as a shortcut. The two pieces of code below behave identically (in fact, the former compiles to the latter):
+
+if x == 1 then
+   run_function_a()
+altif y == 1 then
+   run_function_b()
+alt
+   run_function_c()
+end
+
+if x == 1 then
+   run_function_a()
+end
+if x != 1 and y == 1 then
+   run_function_b()
+end
+if x != 1 and y != 1 then
+   run_function_c()
+end
+
+The main difference between this construct and "else(if)" is that if, in our example above, if x is initially 1 but run_function_a changes the value of x to something other than 1, then both the "x is 1" and "x is not 1" branches may be able to run.
+
+If you need your branches to be mutually exclusive as they would be in an "else(if)" statement, then you will need to use a variable to maintain state:
+
+alias ran_any = global.number[0]
+ran_any = 0
+if x == 1 then
+   ran_any = 1
+   run_function_a()
+end
+if ran_any == 0 then
+   if y == 1 then
+      ran_any = 1
+      run_function_b()
+   end
+   if ran_any == 0 then
+      if y != 1 then
+         run_function_c()
+      end
+   end
+end
+
+The example above may be easier to read if you consider that else(if) statements can be written as nested else and if statements:
+
+if x == 1 then
+   run_function_a()
+else
+   if y == 1 then
+      run_function_b()
+   else
+      run_function_c()
+   end
+end
+
+Else and else-if
+
+As mentioned in the section above, the Megalo script engine doesn't have any built-in support for "else(if)" statements. It would be theoretically possible for the compiler to support such statements by automating the workaround described above, but this has not been implemented as of this writing, and it would come with some ugly limitations involving the nesting of else(if) statements.
+Micro-optimizations
+
+In Megalo, most code blocks compile to a single "trigger," or compiled block. However, if-statements are a common exception. Conditions can be compiled directly into their containing blocks, and they act as a kind of conditional exit: the block stops running early if the condition is not met. This means that if an if-statement is the last element in its containing block, then it can be "inlined" into that block's compiled trigger, but if the if-statement isn't the last element, then it has to be compiled as a nested trigger.
+
+In other words: the following two pieces of code do the same thing, but the second one uses one less trigger and so contributes less to script size limits:
+
+for each player do
+   if current_player.team == team[0] then
+      game.show_message_to(current_player, none, "Your objective is under attack!")
+   end
+   script_widget[0].set_visibility(current_player, true)
+end
+
+for each player do
+   script_widget[0].set_visibility(current_player, true)
+   if current_player.team == team[0] then
+      game.show_message_to(current_player, none, "Your objective is under attack!")
+   end
+end
+
+
+Operators
+
+Operators are symbols used to compare or assign values.
+Comparison operators
+
+==
+    Checks if the two values are equal. Don't confuse this with the assignment operator, which is a single equal sign.
+!=
+    Checks if the two values are not equal.
+>
+    Checks if the lefthand value is greater than the righthand value.
+<
+    Checks if the lefthand value is less than the righthand value.
+>=
+    Checks if the lefthand value is greater than or equal to the righthand value.
+<=
+    Checks if the lefthand value is less than or equal to the righthand value.
+
+Numbers and timers can be compared to each other. All variables can only be compared with variables of the same type, and they only support equality and inequality comparisons (== and !=).
+Assignment operators
+
+Expressions are not supported in this language; however, compound operations are available. For example, a += b is equivalent to the hypothetical statement a = a + b.
+
+=
+    Assign. Sets the variable on the lefthand side to the value on the righthand side. Don't confuse this with the equality comparison operator, which is two equal signs.
++=
+    Add-assign. Increases the variable on the lefthand side by the value on the righthand side.
+-=
+    Subtract-assign. Decreases the variable on the lefthand side by the value on the righthand side.
+*=
+    Multiply-assign. Multiplies the variable on the lefthand side by the value on the righthand side.
+/=
+    Divide-assign. Divides the variable on the lefthand side by the value on the righthand side. Any remainder will be discarded.
+%=
+    Modulo-assign. Sets the lefthand variable to the remainder of dividing the lefthand value by the righthand value.
+&=
+    Binary-AND-assign. Modifies each bit in the variable on the lefthand side: bits will be set to zero if the corresponding bit in the righthand value is zero; otherwise, bits will be left unchanged.
+|=
+    Binary-OR-assign. Modifies each bit in the variable on the lefthand side: bits will be set to one if the corresponding bit in the righthand value is one; otherwise, bits will be left unchanged.
+^=
+    Binary-XOR-assign. Modifies each bit in the variable on the lefthand side: bits will be set to one if the corresponding bit in the righthand value is different, or set to zero otherwise.
+~=
+    Binary-NOT-assign. Modifies each bit in the variable on the lefthand side: bits will be set to zero if the corresponding bit in the righthand value is one, or left unchanged otherwise. This is equivalent to a &= ~b.
+<<=
+    Binary left shift. Shifts the bits of the lefthand operand to the left; the righthand operand controls the number of bits to shift by.
+>>=
+    Arithmetic right shift. Shifts the bits of the lefthand operand to the right; the righthand operand controls the number of bits to shift by. If the lefthand operand is negative, its sign bit is extended.
+lhs = abs(rhs)
+    Absolute value assignment. Sets the lefthand variable to the absolute value of the righthand value.
+
+Numbers and timers can be assigned to each other, and can use any assignment operator. All other variables can only be assigned values of the same type, and can't use any operators other than =.
+
+
+Useful code snippets
+
+The following code snippets are likely to be useful when making new gametypes from scratch. Note that if a code snippet requires the use of a variable, you will probably have to ensure that your own script doesn't use the same variable for anything important.
+
+These snippets include both "common" behaviors, which can be omitted from very specialized gametypes (e.g. chess does not need to award DLC achievements for kills), and "standard" behaviors, which the user would expect all gametypes to have (e.g. ending the round when the round timer runs out, which, yes, you have to do manually).
+
+    Announce game start
+    DLC Achievements
+    Loadout palette code
+    Identifying Red and Blue Teams across rounds
+    Moving one object to another
+    Round timer code (basic)
+    Round timer code (with Sudden Death)
+    Super Shields
+
+Announce game start
+
+Most official gametypes announce their names at the start of each round. They do this by sending an incident: they use the send_incident function to tell the game that some event (such as the start of a round) has occurred. Each base gametype has its own incident.
+
+alias announced_game_start = allocate player.number
+alias announce_start_timer = allocate player.timer
+
+declare player.announced_game_start with network priority low = 0
+declare player.announce_start_timer = 5
+
+for each player do
+   if current_player.announced_game_start == 0 and current_player.announce_start_timer.is_zero() then
+      send_incident(race_game_start, current_player, no_player)
+      current_player.announced_game_start = 1
+   end
+end
+
+In addition to announcing the game start, you may want to display explanatory text at the start of the round. You can do this by calling the player.set_objective_text function. Commonly, gametypes will display the score to win in the "round card," unless the player has turned off the score limit, and this can be accomplished using format strings.
+
+alias announced_game_start = allocate player.number
+alias announce_start_timer = allocate player.timer
+
+declare player.announced_game_start with network priority low = 0
+declare player.announce_start_timer = 5
+
+for each player do
+   if game.score_to_win != 0 then
+      current_player.set_objective_text("Collect flags for your team.\r\n%n points to win.", game.score_to_win)
+   end
+   if game.score_to_win == 0 then
+      current_player.set_objective_text("Collect flags for your team.")
+   end
+   if current_player.announced_game_start == 0 and current_player.announce_start_timer.is_zero() then
+      send_incident(stockpile_game_start, current_player, no_player)
+      current_player.announced_game_start = 1
+   end
+end
+
+DLC Achievements
+
+Several DLC achievements are awarded by Megalo script instead of being hardcoded into the game. These include:
+
+Dive Bomber
+    Assassinate an enemy player while using a Jetpack.
+From Hell's Heart
+    After being stuck with a plasma grenade, make sure that the player who stuck you dies in the blast with you.
+Top Shot
+    Score three headshot kills in a row without dying.
+License to Kill
+    Splatter five enemy players during a single match.
+Paper Beats Rock
+    Assassinate an enemy player no more than three seconds after they stop using Armor Lock.
+
+This code was taken from official gametypes. In some cases, small adjustments were made in order to avoid dependencies that you can't easily copy and paste (e.g. using the object.is_of_type condition instead of using object.has_forge_label with unnamed Forge labels, as 343i does).
+
+alias ach_top_shot_count              = allocate player.number
+alias ach_license_to_kill_count       = allocate player.number
+alias ach_paper_beats_rock_vuln_timer = allocate player.timer
+declare player.ach_top_shot_count        with network priority low
+declare player.ach_license_to_kill_count with network priority low
+
+for each player do -- award Dive Bomber achievement as appropriate
+   alias killer    = allocate temporary player
+   alias killer_aa = allocate temporary object
+   alias death_mod = allocate temporary number
+   if current_player.killer_type_is(kill) then 
+      killer    = current_player.get_killer()
+      death_mod = current_player.get_death_damage_mod()
+      if death_mod == enums.damage_reporting_modifier.assassination then
+         killer_aa = killer.get_armor_ability()
+         if killer_aa.is_of_type(jetpack) and killer_aa.is_in_use() then 
+            send_incident(dlc_achieve_2, killer, killer, 65)
+         end
+      end
+   end
+end
+
+for each player do -- award From Hell's Heart achievement as appropriate
+   alias death_mod = allocate temporary number
+   alias killer    = allocate temporary player
+   if current_player.killer_type_is(kill) then
+      death_mod = current_player.get_death_damage_mod()
+      if death_mod == enums.damage_reporting_modifier.sticky then
+         killer = current_player.get_killer()
+         if killer.killer_type_is(suicide) then 
+            send_incident(dlc_achieve_2, current_player, current_player, 68)
+         end
+      end
+   end
+end
+
+for each player do -- manage and award Top Shot achievement as appropriate
+   alias killer    = allocate temporary player
+   alias death_mod = allocate temporary number
+   if current_player.killer_type_is(guardians | suicide | kill | betrayal | quit) then 
+      current_player.ach_top_shot_count = 0
+      if current_player.killer_type_is(kill) then 
+         killer    = current_player.get_killer()
+         death_mod = current_player.get_death_damage_mod()
+         if death_mod != enums.damage_reporting_modifier.headshot then 
+            killer.ach_top_shot_count = 0
+         end
+         if death_mod == enums.damage_reporting_modifier.headshot then 
+            killer.ach_top_shot_count += 1
+         end
+         if killer.ach_top_shot_count > 2 then 
+            send_incident(dlc_achieve_2, killer, killer, 62)
+         end
+      end
+   end
+end
+
+for each player do -- manage and award License To Kill achievement as appropriate
+   alias killer    = allocate temporary player
+   alias death_mod = allocate temporary number
+   if current_player.killer_type_is(kill) then 
+      killer    = current_player.get_killer()
+      death_mod = current_player.get_death_damage_mod()
+      if death_mod == enums.damage_reporting_modifier.splatter then 
+         killer.ach_license_to_kill_count += 1
+         if killer.ach_license_to_kill_count > 4 then 
+            send_incident(dlc_achieve_2, killer, killer, 66)
+         end
+      end
+   end
+end
+
+for each player do -- manage timing for the Paper Beats Rock achievement
+   alias current_ability = allocate temporary object
+   --
+   current_ability = current_player.get_armor_ability()
+   if current_ability.is_of_type(armor_lock) and current_ability.is_in_use() then 
+      current_player.ach_paper_beats_rock_vuln_timer = 3
+      current_player.ach_paper_beats_rock_vuln_timer.set_rate(-100%)
+   end
+end
+for each player do -- award Paper Beats Rock achievement as appropriate
+   alias killer    = allocate temporary player
+   alias death_mod = allocate temporary number
+   if current_player.killer_type_is(kill) and not current_player.ach_paper_beats_rock_vuln_timer.is_zero() then 
+      death_mod = current_player.get_death_damage_mod()
+      if death_mod == enums.damage_reporting_modifier.assassination then
+         killer = current_player.get_killer()
+         send_incident(dlc_achieve_2, killer, killer, 60)
+      end
+   end
+end
+
+Loadout palette code
+
+Players will not have access to any loadout palette unless you give them access to loadout palettes. Standard gametypes grant players access to the Spartan Tier 1 and Elite Tier 1 palettes depending on their species.
+
+for each player do -- loadout palettes
+   if current_player.is_elite() then 
+      current_player.set_loadout_palette(elite_tier_1)
+   end
+   if not current_player.is_elite() then 
+      current_player.set_loadout_palette(spartan_tier_1)
+   end
+end
+
+Identifying Red and Blue Teams across rounds
+
+As explained here, Megalo scripts commonly refer to teams by a number, and with each round, Red and Blue Team swap their numbers. This makes it easy to implement asymmetric gametypes: you can assume that team[0] is always Defense and team[1] is always Offense. The thing is, what if you actually need to know which team is Red Team and which is Blue Team?
+
+343 Industries' "Freeze Tag" game mode lightens players' armor colors whenever they become "frozen." It does this by applying a set of player traits with a forced color, but this means that Red Team and Blue Team need different traits, to force their colors to pink and teal, respectively — and it means that the gametype needs to know a player's team color, so that it can apply the right set of traits.
+
+alias red_team  = allocate global.team
+alias blue_team = allocate global.team
+declare red_team  with network priority high = team[0]
+declare blue_team with network priority high = team[1]
+
+on init: do
+   alias is_odd = allocate temporary number
+
+   --
+   -- We need to know which team is red and which team is blue, so we can apply the 
+   -- appropriate visuals to players that are frozen. However, that's trickier than 
+   -- you might expect: teams alternate each round, but their indices are remapped. 
+   -- On round 1, Red Team is team[0], but on round 2, it's team[1].
+   --
+   is_odd = game.current_round
+   is_odd %= 2
+   if is_odd == 0 then -- even-numbered round
+      red_team  = team[0]
+      blue_team = team[1]
+   end
+   if is_odd != 0 then -- odd-numbered round
+      red_team  = team[1]
+      blue_team = team[0]
+   end
+end
+
+Moving one object to another
+
+Megalo doesn't have a "move to" function that can be used to move one object to another. Instead, you must take the object to be moved, attach it to the object you wish to move it to, and then detach it.
+
+alias subject = global.object[0]
+alias target  = global.object[1]
+
+subject.attach_to(target, 0, 0, 0, relative)
+subject.detach()
+
+When attaching an object, you can optionally provide a position offset, and you can decide whether this should be relative to the target's rotation or not. This can be used to fine-tune object positions:
+
+alias subject = global.object[0]
+alias target  = global.object[1]
+
+-- Move (subject) 10.0 Forge units above (target):
+subject.attach_to(target, 0, 0, 100, relative)
+subject.detach()
+
+Each coordinate in the attachment offset is limited to the range [-128, 127], where one unit in Forge is ten in Megalo. If you need to move an object further than 12.7 Forge units away from some target, you can do so by creating a second object along the way.
+
+alias subject   = global.object[0]
+alias target    = global.object[1]
+alias temporary = global.object[2]
+
+-- Move (subject) 20 Forge units (200 Megalo units) above (target), by creating
+-- a Hill Marker 10 Forge units above (target) and moving (subject) 10 Forge
+-- units above that marker:
+temporary = target.place_at_me(hill_marker, none, none, 0, 0, 100, none)
+subject.attach_to(temporary, 0, 0, 100, relative)
+subject.detach()
+temporary.delete() -- make sure to delete the temporary Hill Marker afterward!
+
+Round timer code (basic)
+
+Halo: Reach does not automatically end the round when the round timer expires. Instead, it's up to Megalo script. The round timer likely behaves this way so that Invasion can use it for individual phases.
+
+if game.round_time_limit > 0 and game.round_timer.is_zero() then
+   game.end_round()
+end
+
+Round timer code (with Sudden Death)
+
+The code for a round timer with Sudden Death is a bit more complicated.
+
+Typically, Sudden Death will activate if, at the end of the round, a player is in a position where they can attempt to complete the objective. For example, during CTF, Sudden Death will activate if a player is standing very close to a flag that they can pick up and capture.
+
+Typically, the Grace Period is used to complement Sudden Death. Sudden Death activates when a player is able to further an objective match; for example, it will enable if any player is standing close to a flag that they can pick up and score. In that scenario, if Sudden Death begins and then the conditions for it are no longer met (the player stops being near the flag), then the match will end after the Grace Period ends. Sudden Death never resets (if a player comes near the flag again, the timer will continue from where it left off), but the Grace Period does.
+
+alias sudden_death_enabled   = allocate global.number -- set this to 1 when you want Sudden Death to be active, or 0 otherwise
+alias announced_sudden_death = allocate global.number -- only announce the start of Sudden Death once
+
+if not game.round_timer.is_zero() then 
+   game.grace_period_timer = 0
+end
+if game.round_time_limit > 0 then 
+   if not game.round_timer.is_zero() then 
+      announced_sudden_death = 0
+   end
+   if game.round_timer.is_zero() then 
+      if sudden_death_enabled == 1 then 
+         game.sudden_death_timer.set_rate(-100%)
+         game.grace_period_timer.reset()
+         if announced_sudden_death == 0 then 
+            send_incident(sudden_death, all_players, all_players)
+            announced_sudden_death = 1
+         end
+         if game.sudden_death_time > 0 and game.grace_period_timer > game.sudden_death_timer then 
+            game.grace_period_timer = game.sudden_death_timer
+         end
+      end
+      if sudden_death_enabled == 0 then 
+         game.grace_period_timer.set_rate(-100%)
+         if game.grace_period_timer.is_zero() then 
+            game.end_round()
+         end
+      end
+      if game.sudden_death_timer.is_zero() then 
+         game.end_round()
+      end
+   end
+end
+
+Super Shields
+
+Like the original Halo: Combat Evolved, Halo: Reach doesn't display any extra graphics on players that have overshields. The "TU" versions of many gametypes include a new option called "Super Shields" which works around this, by spawning fire particles on these players.
+
+alias opt_super_shields = script_option[12]
+alias lifespan = allocate object.timer
+
+-- This should be the index of a nameless Forge label whose object type 
+-- is the fire particle emitter:
+alias all_fire_particles = 7
+
+declare object.lifespan = 1
+
+for each player do -- handle super shields VFX
+   if opt_super_shields == 1 then 
+      alias current_shields = allocate temporary number
+      alias outcome         = allocate temporary number
+      --
+      current_shields = 0
+      current_shields = current_player.biped.shields
+      if current_shields > 100 then 
+         outcome = 0
+         outcome = rand(10)
+         if outcome <= 2 then -- 30% chance to spawn a particle emitter
+            current_player.biped.place_at_me(particle_emitter_fire, none, never_garbage_collect, 0, 0, 0, none)
+         end
+      end
+   end
+end
+for each object with label all_fire_particles do -- clean up super shields VFX
+   current_object.lifespan.set_rate(-100%)
+   if current_object.lifespan.is_zero() then 
+      current_object.delete()
+   end
+end
+
+Variable declarations
+
+Variable declarations allow you to specify a variable's networking priority and its initial value. They look like this:
+
+declare SOME_VARIABLE
+declare SOME_VARIABLE = SOME_NUMBER
+declare SOME_VARIABLE with network priority SOME_PRIORITY
+declare SOME_VARIABLE with network priority SOME_PRIORITY = SOME_NUMBER
+
+When specifying the variable to declare, you are allowed to use an alias.
+
+Only number and timer variables can be given initial values. These values can be any number except for another variable. If you do not specify an initial value (or if you don't declare the variable at all), then the initial value used is zero.
+
+All variable types except for timers can have a networking priority set. The network priority values are:
+
+low
+    Testing has established that low-priority variables can survive a host migration. If you don't specify a networking priority for a variable, this is used as the default.
+high
+    Testing has established that high-priority variables can survive a host migration. If you wish to display a player variable in the UI, it must be high-priority.
+local
+    Variables with this network priority aren't sent over the network at all. This is a good thing to use for temporary variables that are just used to do quick tasks, like computing a number to be stored elsewhere.
+
+Declaring a variable multiple times generates a compiler warning if the declarations don't conflict with each other or contain redundant information (e.g. multiple initial values), or a compiler error otherwise.
+Temporary variables
+
+Temporary variables do not need to be declared, and cannot be given an initial value or a networking priority. Attempting to declare them is a warning, unless you also specify an initial value or networking priority, in which case it's an error.
+
+
+Best practices
+
+When writing scripts, there are a number of things you can do to make things easier for yourself and others.
+Back up your original source code
+
+Megalo is a compiled language. This means that the game variants that you save will not include the full and exact script code that you wrote; rather, they include a pre-processed copy of the code, which Halo: Reach can quickly read and execute. Aliases, code comments, and similar are not saved, and if you lose them, they cannot be recovered by decompiling.
+
+You should keep your own copies of the source code that you write, separately from the game variant files that you save, so that you don't lose your code comments and other informative content.
+Use aliases everywhere
+
+When working with Megalo, you'll find yourself juggling several variables, particularly "temporary" variables that only need to hold information very briefly as part of some task. My approach to this is to alias all of my variables at the top of the script, with names specifically marking the temporary ones.
+
+--
+-- Variables that need to remain "pristine" throughout a single game tick, or across
+-- multiple game ticks, get meaningful names:
+--
+alias sudden_death_enabled   = allocate global.number -- set this to 1 when you want Sudden Death to be active, or 0 otherwise
+alias announced_sudden_death = allocate global.number -- only announce the start of Sudden Death once
+
+-- I usually define names like the ones above at the start of the script file.
+
+--
+-- Aliases can be block-scoped, so when you're using a temporary variable for something, 
+-- you can give it a specific name.
+--
+for each object with label "goal" do
+   alias current_biped = allocate temporary object
+   alias distance      = allocate temporary number
+   --
+   for each player do
+      current_biped = current_player.biped
+      if current_biped != no_object then
+         distance = current_biped.get_distance_to(current_object)
+         if distance < 10 then
+            --
+            -- ...
+            --
+         end
+      end
+   end
+end
+
+Aliases are also good for script options, so that you can reorder them within your gametype without having to change option indices all over the code. I prefer to put these aliases near the start of the code:
+
+alias opt_leader_points = script_option[0]
+alias opt_kill_points   = script_option[1]
+
+And of course, it's also useful to do that for script traits, script widgets, and the indices of unnamed Forge labels:
+
+alias leader_traits = script_traits[0]
+
+alias ui_turn_clock = script_widget[0]
+
+alias all_jetpacks = 1
+for each object with label all_jetpacks do
+   -- ...
+end
+
+Most programming languages let you create as many variables as you need. ReachVariantTool's dialect of Megalo is lower-level; you have a limited pool of variables to use, and the compiler doesn't automatically manage them for you. You have the maximum level of control over them, but also the maximum amount of responsibility. Aliases are a powerful tool for keeping things manageable.
+Use object-scoped variables sparingly!
+
+Megalo allows us to store information on objects in the game world, using variables that belong to those objects. However, only a limited number of objects at a time are allowed to have variables. If you try to assign variables to more objects than that, then you simply won't be able to.
+Comment your code!
+
+Code comments are a great way to make sure that other people can easily understand your code. They're also very helpful for you, because you're gonna be "other people" in six months. It's always helpful to write informative comments which explain what you're doing.
+
+if opt_draw_rule > 0 and draw_turn_count >= opt_draw_rule then
+   --
+   -- If 75 moves (by default) pass without there being pawns on the board, and 
+   -- without either player capturing an enemy piece, then the game will end in 
+   -- a draw automatically.
+   --
+   ui_endgame.set_text("Draw! (%n turns passed with no pawns and no captures.)", draw_turn_count)
+   do_endgame_ui_visibility()
+   game.end_round()
+end
+
+It's somewhat common for novice programmers to write code comments that... aren't super helpful, like in this deliberately exaggerated example here:
+
+-- Increase the number by five
+global.number[0] += 5
+
+But... how does one write a good code comment? Well, a good way to view programming is as its own form of communication, in a setting where precision is required and enforced; we don't call these things "programming languages" for nothing. When you write code, you're communicating with the machine, but you're also communicating with whoever else reads your code. Some ideas are easier to express in plain English, however — particularly high-level goals and abstractions — and those are precisely the ideas you should aim to convey in a code comment.
+
+The code that you write consists of low-level, step-by-step instructions — lots of "little picture" stuff. Let your comments convey the big picture... and the medium picture, I suppose.
+
+
+Scripted object count limit
+
+Objects are capable of having variables attached to them — numbers, timers, and references to teams, players, and other objects. However, the game needs someplace to actually store the values of these variables.
+
+In practice, the game only makes enough room for 512 objects' worth of scripted object data (256 on Xbox 360). This data includes nested variables, but also includes a variety of properties and options that can be set on objects via scripts. If there already exist 512 objects (256 on Xbox 360) with scripted object data, any attempt to set any of this data on a 513th object (257th on Xbox 360) will silently fail.
+
+The following operations may create scripted object data for an object, depending on what objects they're called on. This list is based on reverse-engineering of the game executable, and should be considered best-effort, not definitive.
+
+    Setting any nested variable on an object
+    Checking the timer.is_zero condition on an object.timer variable, unless the timer variable's initial value is a negative number.
+    player.set_primary_respawn_object, for whatever is used as the respawn object
+    team.set_primary_respawn_object, for whatever is used as the respawn object
+    object.timer.reset
+    object.timer.set_rate
+    object.apply_shape_color_from_player_member
+    object.set_pickup_permissions
+    object.set_progress_bar
+    object.set_shape_visibility, though this doesn't appear to occur if the object in question is any player's biped
+    object.spawn_location_fireteams
+    object.spawn_location_permissions
+    object.set_waypoint_icon
+    object.set_waypoint_priority
+    object.set_waypoint_range
+    object.set_waypoint_text, though this doesn't appear to occur if the object in question is any player's biped
+    object.set_waypoint_timer
+    object.set_waypoint_visibility
+    object.set_weapon_pickup_priority, but only if the priority used is automatic
+
+
+Inline blocks
+
+In mid-July 2023, the Master Chief Collection was updated to backport some Halo 4 scripting features to Halo: Reach. One of these is the begin action. This is a low-level optimization that allows triggers to be compiled slightly more efficiently.
+
+trigger general
+   action for_each player
+      temporary number is_survivor false
+      temporary number is_zombie   false
+
+      action begin
+         condition if current_player.is_zombie == 1
+         action set is_zombie = true
+      end
+      action begin
+         condition if current_player.is_zombie == 0
+         action set is_survivor = true
+      end
+   end
+end
+
+ReachVariantTool uses the term inlined triggers for this feature, in reference to how it works under the hood.
+
+Ordinarily, blocks of code are compiled into "trigger" data structures in the Megalo data format, and an "action" is compiled into the script code to "call" these triggers and execute their contents. (In fact, ReachVariantTool implements user-defined functions by abusing this system and compiling a trigger that gets called from multiple places.) However, there's a limit on how many triggers a gametype can contain.
+
+What this new feature does is take some of the data that triggers normally contain (specifically, the data that says, "this part of the code belongs to me; it is inside me"), and it writes that data directly into the action itself. This means that the block of code doesn't become a "real" trigger that contributes to a gametype's overall trigger limit; the block of code is inlined directly into the very same action that executes it.
+
+In order to inline a block in ReachVariantTool, prefix it with an inline specifier:
+
+inline: do
+   -- ...
+end
+
+You can only inline do, if, altif, and alt blocks, and you cannot inline a block that is an event handler. This is because for blocks and event handler blocks require extra information that's only stored in real triggers, not inlined ones.
+
+Functions cannot be marked as inline at this time. It would theoretically be possible to compile function calls as inline triggers, without creating a full trigger for the function's body, provided the function doesn't need any functionality that requires full trigger behavior (i.e. the function doesn't have a for-loop as its entire body); however, this is not implemented.
+
+Under the hood
+
+This article describes the basics of how Megalo code is compiled and stored in a saved gametype. You don't need to know any of this in order to write Megalo scripts; this should be considered advanced knowledge.
+Basic structure of a script
+
+Megalo scripts are organized into triggers, which map roughly to blocks of code in a script. The code itself consists of conditions and actions which are executed in sequence when the game engine executes the trigger as a whole. Triggers have additional data allowing them to specify their overall type (e.g. what kind of for-loop, if any, they are, and what Forge label they act on) and what event they handle.
+
+In order to nest a block of code, the game compiles the inner block as its own trigger separate from the outer block; the inner block is marked as a "subroutine" block, which distinguishes it from a top-level trigger so that the game won't blindly execute it when scanning through the trigger list. Then, the outer block has a "call" action compiled in: this action refers to another trigger by index and directs the game to execute that trigger's contents.
+
+ReachVariantTool abuses this implementation of nesting in order to offer user-defined functions: we compile the function's body as an independent trigger that has been marked as an inner trigger, and we use the "call" action to... well, call it. You could think of a user-defined function as an inner block that's nested under multiple outer blocks, existing in multiple places at once.
+Storage
+
+Gametype script code uses a struct-of-arrays approach for storage. Rather than physically locating conditions and actions inside of the data for their containing trigger, Halo: Reach instead stores a list of every condition in the script, a list of every action in the script, and a list of every trigger in the script.
+
+Triggers contain a data structure that is, internally, called an "action scope." This data structure contains the indices of the trigger's first condition and first action, as well as the number of conditions and actions inside of the trigger: the trigger defines its contents as slices of the condition and action arrays. This approach on its own would not allow conditions and actions to be interleaved; Bungie accomplished that by having each condition specify the index (within the containing trigger, not the overall list) of the action it precedes.
+
+(This is all part of the overall design for game variant data: nothing inside of a game variant is heap-allocated, and there don't appear to be any internal pointers. All lists are stored in fixed-size memory regions. This extends even to the string table: the max uncompressed size is 0x4C00 bytes, and so there's a region that large within the in-memory game variant struct.)
+A potential optimization
+
+It would hypothetically be possible to "overlap" triggers. If trigger A's actions (ignoring any interleaved conditions) are exactly identical to a subset of trigger B's actions (again ignoring any interleaved conditions), then a game variant would really only need to store trigger B's actions, with trigger A using a slice of those. (Sharing conditions would be harder, since conditions store additional data values that help to define the structure of their containing trigger (see next section).)
+
+Unfortunately, implementing this optimization within ReachVariantTool, specifically, would be highly impractical. ReachVariantTool stores triggers in memory without using the "slices of global lists" approach used by the file format itself. In memory, each loaded trigger stores a std::vector<Opcode*>, and when saving, we traverse each trigger to build the "all conditions" and "all actions" arrays and serialize triggers as slices of each. In other words: for the compiler to apply this optimization, it'd have to be carefully designed to predict the future, in a way that feels like a breeding ground for potential bugs.
+
+In order for this optimization to be viable within ReachVariantTool, the program would have to be redesigned to store a Megalo script in memory the same way it's stored in a game variant file: an array of all conditions; an array of all actions; and triggers (and action scopes generally) defining slices of each array. Triggers could at least be given accessors that adapt the data, so it can still be accessed as a flat, sequential, interleaved list of opcodes per-trigger.
+Execution
+
+In order to execute a trigger, the game loops over every action inside the trigger. For each action, we loop over all conditions that we haven't looped over before, and that come before the current action. If those conditions, in sum, fail, then we stop trigger execution; otherwise, we execute the current action. Conditions, then, act as early-returns from the current block. There are no "if" blocks in Megalo; rather, there are bare blocks which contain conditions.
+
+The qualifier "in sum" here refers to the fact that conditions can be linked with "and" relationships or, alternatively, with "or" relationships. Conditions each have an "or group" value, an arbitrary integer; consecutive conditions with the same "or group" value are considered "or"-linked. Conditions fail in sum if any "and"-linked condition fails, or if all of a set of "or"-linked conditions fail.
+
+MegaloActionScope::Execute(const MegaloScriptCode& script) const {
+   size_t ci = 0; // condition index
+   for(size_t ai = 0; ai < this->action_count; ++ai) {
+
+      int32_t current_or_group = -1;
+
+      // True if all conditions in the current "or group" have matched. 
+      // An "or group" is a group of conditions that have been OR'd 
+      // together.
+      bool group_still_valid = true;
+
+      for(; ci < this->condition_count; ++ci) {
+         const auto& condition = script.conditions[this->condition_start + ci];
+
+         if (condition.exec_before > ai)
+            //
+            // This condition applies to actions later in the trigger.
+            //
+            break;
+
+         if (condition.or_group != current_or_group) {
+            if (!group_still_valid)
+               //
+               // If we reach the end of an "or group" and none of the 
+               // conditions have matched, then stop the trigger.
+               //
+               return;
+            current_or_group  = condition.or_group;
+            group_still_valid = false;
+         }
+         group_still_valid |= condition.Execute();
+      }
+      if (!group_still_valid)
+         return;
+
+      const auto& action = script.actions[this->action_start + ai];
+      action.Execute();
+   }
+}
+
+Because conditions act as an early-return mechanism for their containing block, they don't always require a separate block of their own; a condition's influence runs to the end of its containing block. If you wish to have some sequence of actions where only the middle few actions are conditional, however, then you must split that sequence of actions into a nested trigger, which will limit those conditions' influence.
+Inlined triggers
+
+The mid-July 2023 update to Halo: The Master Chief Collection backported a number of scripting features from Halo 4 to Halo: Reach. One of these is the begin action, which allows one to nest a block of script code without having to create an entire new trigger for it (thereby avoiding the limit on how many ordinary triggers a game variant can contain).
+
+The implementation is simple. The action's sole parameter is an action scope — the data structure that triggers use to identify what conditions and actions they contain. In other words, the action scope for the nested block is inlined directly into the action used to execute that block.
+References
+
+There are five kinds of values to which one can define a reference: integers, objects, players, teams, and timers. These can be split into two categories: numeric references (though MegaloEdit uses the term "custom") and handle references, the latter so named because Halo: Reach's engine generally uses handles rather than pointers for working with objects, players, and teams.
+
+Explicit handle references are single values — enums, which indicate specific, globally-accessible handles; for example, current_object, local_player, and all global and temporary handle variables in Megalo.
+
+enum class explicit_object_handle : int8_t;
+enum class explicit_player_handle : int8_t;
+enum class explicit_team_handle   : int8_t;
+
+union explicit_handle_union {
+   int8_t untyped = -1; // "none"
+
+   explicit_object_handle object;
+   explicit_player_handle player;
+   explicit_team_handle   team;
+};
+
+Handle reference operands in Megalo, then, resemble the following, using object handles as an example:
+
+enum class object_reference_kind : uint8_t;
+
+class object_reference {
+   public:
+      object_reference_kind  kind; // like a tagged union's tag
+      explicit_handle_union  top_level;
+      std::optional<uint8_t> member_index;
+};
+
+If the operand refers directly to an explicit object handle, then the kind enum will indicate this, and the top_level field will specify which handle is being referred to, and the member_index field will be absent. If the operand refers to an object that is the member of some other handle, then the kind enum will indicate that; the top_level field will specify the handle, and the member_index field will specify which object handle member is being referred to.
+
+Complicating matters slightly is the fact that properties are also represented in this system. If the operand is a reference to a player's biped, then this is indicated via the kind; the member_of and target_index fields hold the same values that they would for a player_reference referring to that same player.
+RVT-syntax reference 	top_level 	member_index
+no_object 	-1 	
+global.object[T] 	T 	
+global.object[T].object[M] 	T 	M
+current_player.object[M] 	24[note 1] 	M
+temporaries.object[T] 	21 + T 	
+current_player.biped 	24[note 1] 	
+current_player.player[M].biped 	24[note 1] 	M
+[note 1:] In this case, 24 is a value in the explicit_player_handle enum, which corresponds to current_player.
+
+Numeric references are slightly different. First, I'll illustrate this with timers:
+
+enum class timer_reference_kind : uint8_t;
+
+class timer_reference {
+   public:
+      timer_reference_kind  kind; // like a tagged union's tag
+      explicit_handle_union member_of;
+      uint8_t               target_index;
+};
+
+If the operand is a reference to a built-in timer, like the game's round timer, then this is indicated via the kind; neither of the other fields are present in the serialized data. If the operand is a reference to a globally-scoped timer, then this is indicated via the kind, the member_of is absent from the serialized data, and the target_index specifies which timer is being used. If the timer is a member of some other object, then all three fields are used.
+RVT-syntax reference 	member_of 	target_index
+game.round_timer 		
+global.timer[T] 		T
+global.object[M].object[T] 	M 	T
+current_player.timer[T] 	24[note 1] 	T
+[note 1:] In this case, 24 is a value in the explicit_player_handle enum, which corresponds to current_player.
+
+Integer references are essentially the same, except that they can also refer to an integer constant — a signed 16-bit value:
+
+enum class integer_reference_kind : uint8_t;
+
+class integer_reference {
+   public:
+      integer_reference_kind kind; // like a tagged union's tag
+      union {
+         int16_t constant;
+         struct {
+            explicit_handle_union member_of;
+            uint8_t               target_index;
+         } variable;
+      };
+};
+
+As with handles, integer property references on handle references (e.g. read-access to a player or team's score) are indicated by the kind enum; member_of and target_index hold the same values that their corresponding fields on handle references, top_level and member_index, would use to refer to the handle on which the property is being accessed. (Perhaps, then, it might even be a good idea to separate out the latter two fields into a struct, and add that as a union member in integer_reference?)
+Temporary variables
+
+The mid-July 2023 update to Halo: The Master Chief Collection backported a number of scripting features from Halo 4 to Halo: Reach. One of these is temporary variables. Their implementation differs between numeric and handle references, naturally. Temporary integer variables are identified by a kind value and a target_index. Temporary handle variables are identified as new explicit handle references — that is, new values in the explicit_object_handle, explicit_player_handle, and explicit_team_handle enumerations shown above.
+
+Temporary variables don't need to be declared within the gametype metadata; the game always has room for them; they always exist. When you declare a temporary variable in MegaloEdit, the official editor for Halo: Reach gametypes, it handles this by just compiling in an assignment to the initial value you specify. It automatically allocates temporary variables based on block scoping, similarly to allocation to aliases in ReachVariantTool. One important difference between the editors is that MegaloEdit is capable of "spilling over" into unused global variables if a script runs out of temporary variables. MegaloEdit can do this because all non-temporary variables must be declared before all script code, so even with a single-pass parser, it always knows which variables are used and which are not. ReachVariantTool, by contrast, also uses a single-pass parser but allows variable declarations (and implicit instantiation: using an undeclared variable automatically declares it) anywhere in the script, and so when ReachVariantTool encounters an allocation-to-alias, it can't know for sure that any given global variable will stay unused through the rest of the script, and so can't safely spill extra temporaries to globals.
+
+(And in case it needs to be said: when MegaloEdit spills to globals, it still uses block-scoping. Once a spilled temporary variable goes out of scope, the global used to back it is considered free for use by any temporaries that spill later on.)
+ReachVariantTool implementation
+
+ReachVariantTool does not make any distinction between numeric and handle references, because at the time I didn't realize there was any such distinction to make. All five reference types are handled uniformly. The components of a reference operand (called a "variable" operand in RVT) are classified based solely on their types, and not on their meanings. This is an unfortunate design flaw arising from an incomplete understanding of Megalo, and it makes ReachVariantTool's code for references harder to follow and reason about.
+
+The kind field is in ReachVariantTool called the operand's "scope" value. The top_level field on handle references and the member_of field on numeric references are treated uniformly and called the "which" value. The member_index field on handle references and the target_index field on target references are treated uniformly and called the "index."
+
+Scope-values are implemented as VariableScopeIndicatorValue instances stored in arrays (one for each reference type); instances effectively serve as annotations for the values of the ..._reference_kind enums. The enum values are annotated with:
+Field name 	Purpose
+flags 	Flags, to track whether this "scope" represents read-only values like player bipeds or the values of Custom Game options, and whether the "scope" is used for references to a variable. (The latter flag is used by the compiler for things like not allowing you to write a variable declaration wherein the declared variable's initial value is another variable.)
+base 	The explicit handle reference's type, if any.
+index_type 	The index's type, if any; or an indicator that this is the "scope" value for an integer constant (represented as enum index_type::generic).
+index_bitcount 	The bitcount for the index. The index's bitcount can be inferred when the reference is to a Megalo number variable; however, when the reference is to some indexed data object, such as a Megalo-defined scoreboard stat or Custom Game option, we use this field to indicate the bitcount needed for the index. We also use this field to indicate the bitcount of integer constants.
+indexed_list_accessor 	
+
+For references to indexed data objects, like Megalo-defined scoreboard stats or Custom Game options, this is a functor that can be used to get a type-erased pointer to the data object in memory, i.e. a pointer to the scoreboard stat definition or Custom Game option definition.
+
+ReachVariantTool allows users to reorder most indexed data options: Custom Game options, scoreboard stats, and similar are defined and edited through the GUI and can be rearranged. The naive approach to this would be to have all script operands store raw indices, and iterate through the entire script to update every operand whenever the user reorders something. The approach ReachVariantTool takes is to have these indexed data objects all inherit from a common base class that tracks its own index within its containing list (i.e. the n-th scoreboard stat knows that it is the n-th scoreboard stat), and have script operands store pointers (typed to the base class) to the indexed data objects. When we go to save the gametype to a file, the operand can simply ask the indexed data object for its index and then serialize that index.
+
+Which-values are implemented as VariableScopeWhichValue instances stored in arrays, with the instances having names and flags.
+
+Indexes are implemented as simple integers. When the reference is to an indexed data object, they are paired with smart pointers that manage refcounts on the indexed data objects (another feature of the base class described above, used to allow end users to delete indexed data objects if they aren't in use by the script).
+ReachVariantTool's compiler
+
+ReachVariantTool uses a mostly-single-pass compiler for its Megalo dialect. Parsing and compilation are done as a single step, and the resulting grammar is context-dependent rather than context-free. There is not any formal grammar; rather, the grammar is entirely a side-effect of how the parser is implemented.
+
+(This is not a terribly good way to design or implement a scripting language, but in my defense, I had never come across Robert Nystrom's excellent book Crafting Interpreters before.)
+
+The compiler reads your script source code and instantiates objects which represent the basic elements of a script: blocks (including user-defined functions), comparisons, statements, aliases, and user-defined enums. The script is represented as a tree structure wherein blocks are branch nodes, comparisons act as annotations to blocks, and statements and aliases are leaf nodes contained within a block. Additionally, during parsing, the compiler retains its own set of unowned pointers to keep track of what aliases, user-defined functions, and user-defined enums are in scope. (User-defined enums are tracked only by the compiler and do not exist within the block hierarchy; however, each enum has a pointer to the block in which it was defined, which allows enums to be block-scoped: we know when to delete them.)
+
+Statements are compiled into Megalo opcodes and operands as they are read. Blocks are not compiled immediately as they're read; rather, top-level blocks are compiled once their end is fully parsed. This is necessary in order to properly handle if-blocks.
+
+Variable references are parsed as they are seen. ReachVariantTool only stores enough data to reliably identify a valid variable reference — so, fields for a top-level variable, nested variable, property, and accessor; as well as fields for integer constants. Invalid variable references (e.g. references nested too deeply) can't be retained at all, which also means that strict typing cannot be enforced for them. For example, ReachVariantTool cannot emit additional errors if you try to compare global.object[0].number[1].player[2] to no_team.
+
+The parser has a limited backtracking capability: handlers for keywords and other language constructs can create a backup of its current position, and then restore that backup, essentially allowing the compiler to rewind to places it's already been. This is used for things like overload resolution (i.e. game.send_incident): because parsing and compiling are done as a single step, the only way to tell which overload the user is invoking is trial-and-error. Function calls are compiled by finding an opcode that has a matching name and has been designated as a function, and attempting to compile each of the passed-in arguments into operands for that opcode.

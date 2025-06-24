@@ -1,0 +1,19 @@
+-- I actually just updated it. The strange rotation was due to the object flipping around depending on which side you were on. This would be a really easy way to tell what side of a map an object is on as a sort of gametype idea. Basically just skip the face_toward action in this script and the object will flip around 180 degrees when you go to the other side of it.
+-- @Weesee I you might find this useful for your stuff as well, its a lot more straightforward. Basically you have your lookat object and the object that needs to look at it. You place an object between those objects which spawns it in with the top facing exactly toward the lookat object. If you were using scale offset, you could literally stop right there and use the z offset, but to flip it 90 degrees we need to take a second object and attach it in the negative x direction then we use place_between_me_and with the first object as the parameter in the parentheses so that the top of the newly spawned object is facing toward the previous object, making either the front or back of that object facing exactly towards our lookat object and because of the back facing toward sometimes, we need to explicitly tell that object to face towards our lookat object to account for this.
+
+function FaceExactlyTowards()
+    alias between = tempGlobalObj
+    alias lookat = tempGlobalObj2
+    alias basis = tempGlobalObj3
+    alias between2 = tempGlobalObj4
+    alias rotated = tempGlobalObj5
+
+    between = basis.place_between_me_and(lookat, sound_emitter_alarm_2, 0)
+    between2 = between.place_between_me_and(between, sound_emitter_alarm_2, 0)
+    between2.attach_to(between, -50, 0, 0, relative)
+    rotated = between2.place_between_me_and(between, sound_emitter_alarm_2, 0)
+    rotated.face_toward(lookat, 0, 0, 0)
+    basis.copy_rotation_from(rotated, true)
+    rotated.delete()
+    between.delete()
+end

@@ -1,0 +1,28 @@
+-- civilian vehicles (script from Weesee i AnvilEditor, adapted & edited by Rabid MagicMan)
+for each object with label "create" do
+   if current_object.spawn_sequence <= -6 and current_object.spawn_sequence >= -8 and current_object.number[4] < 1 then 
+      global.object[10] = current_object
+      global.object[10].number[4] = 1
+      for each object do
+         global.number[10] = current_object.get_distance_to(global.object[10])
+         if global.number[10] == 0 and global.object[10] != current_object then 
+            -- delete all weapons
+            if global.object[10].spawn_sequence == -7 then 
+               current_object.delete()
+            end
+            -- disable all weapons
+            if global.object[10].spawn_sequence == -6 then 
+               current_object.attach_to(global.object[10], 0, 0, 0, relative)
+            end
+            -- remove tank/wraith cannon but leave the gunner seat turret
+            if global.object[10].spawn_sequence == -8 then
+                  global.object[10].number[4] += 1      
+                  if global.object[10].number[4] < 3 then
+                     current_object.delete()
+                  end
+               end
+            end
+         end
+      end
+   end
+end

@@ -1,0 +1,22 @@
+-- Here are some tips on using this for two different scenarios. If you want to add velocity to an object regardless of its speed, you should apply the velocity to that object directly. If you want to apply a specific constant velocity to an object every tick, you should spawn an object in and apply the velocity to that object, then inherit the velocity with an attachment.
+-- In my sabre duel map, I wanted to pull players back from the edges of the map when the flew near them. I did so by applying a velocity directly to the sabre in the exact direction of the center of the map. This allows any other direction of movement to not be discarded and makes the edges function like an elastic barrier. In my acro social gametype, I needed to apply a constant velocity to the player when they were using active camo. This made sure that any new direction the player looked would discard their old velocity and apply a new velocity in the direction they were now looking. This avoided long periods of deceleration if you were to try flying a different direction.
+
+function ApplyVelocity()
+    alias copyMe = tempGlobalObj
+    recursive -= 1
+    if pusher == no_object then
+        pusher = moveObj.place_at_me(sound_emitter_alarm_2, none, suppress_effect, 0, 0, 0, none)
+    end
+    pusher.copy_rotation_from(copyMe, true)
+    pusher.attach_to(moveObj, 0, 0, 0, relative)
+    pusher.detach()
+    copyMe.attach_to(pusher, -1, 0, 0, relative)
+    pusher.attach_to(copyMe, 0, 0, 0, relative)
+    copyMe.detach()
+    moveObj.attach_to(pusher, 1, 0, 0, relative)
+    moveObj.detach()
+    if recursive > 0 then
+        ApplyVelocity()
+    end
+    pusher.delete()
+end

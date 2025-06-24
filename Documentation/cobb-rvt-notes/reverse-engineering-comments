@@ -1,0 +1,191 @@
+FIREFIGHT
+	4-bit engine type (same for all MPVR; in our code as ReachBlockMPVR::type)
+	//
+	// game engine then decides on a VTBL for the loaded game variant based on the 
+	// type above, and immediately calls a virtual load method; for Firefight, that 
+	// method does this: 
+	//
+	UGC header, same as game variants
+	1 bit  // isBuiltIn, same as game variants, though i don't know if it's functional
+	Same struct as GameVariantDataMultiplayer::options // contains: Betrayal Booting; Friendly Fire; Respawn Time (Spartans); Time Limit
+	5 bits // scenario and generator flags
+	3 bits
+	8 bits
+	4 bits // Wave Limit
+	15 bits
+	15 bits // Elite Kill Bonus
+	7 bits; subtract 1 after loading // Spartan Starting Lives
+	7 bits; subtract 1 after loading // Elite Starting Lives
+	15 bits
+	7 bits; subtract 1 after loading // Max Spartan Extra Lives
+	2 bits // Generator Count
+	a set of player traits, same as MP // base spartan traits
+	a set of player traits, same as MP // base elite traits
+	struct FFWaveTraitsStruct // base wave traits?
+		3 bits // Vision
+		2 bits // Hearing
+		3 bits // Luck
+		2 bits // Shootiness
+		2 bits // Grenades
+		2 bits // Don't Drop Equipment
+		2 bits // Assassination Immunity
+		2 bits // Headshot Immunity
+		4 bits // Damage Resistance (enum)
+		4 bits // Damage Modifier (enum)
+	struct[3] // custom skull settings
+		a set of player traits, same as MP
+		a set of player traits, same as MP
+		a FFWaveTraitsStruct
+	Same struct as GameVariantDataMultiplayer::options::respawn
+	struct[3] // probably wave properties for non-bonus rounds; three of this struct, probably one per round
+		18 bits // probably enabled skulls as a flags mask, with some unused bits
+		// probably Initial Wave:
+		1 bit // Uses Dropship
+		1 bit // Squad Selection Order; 0 = random, 1 = ordered
+		4 bits // squad count
+		struct[12] // squad types
+			8 bits; subtract 1 after loading
+		// probably Main Waves:
+		1 bit
+		1 bit
+		4 bits
+		struct[12]
+			8 bits; subtract 1 after loading
+		// probably Boss Wave:
+		1 bit
+		1 bit
+		4 bits
+		struct[12]
+			8 bits; subtract 1 after loading
+	// probably bonus wave properties:
+	12 bits // bonus wave duration
+	18 bits // probably consistent with wave properties above
+	1 bit // Uses Dropship
+	1 bit // Squad Selection Order; 0 = random, 1 = ordered
+	4 bits // squad count
+	struct[12] // squad types
+		8 bits; subtract 1 after loading
+
+SQUAD ENUM
+ 0 = Brutes
+ 1 = Brute Kill Team
+ 2 = Brute Patrol
+ 3 = Brute Infantry
+ 6 = Elites
+ 7 = Elite Patrol
+ 8 = Elite Infantry
+13 = Elite Generals
+14 = Grunts
+15 = Hunter Kill Team
+17 = Hunter Strike Team
+18 = Jackal Patrol
+19 = Elite Strike Team
+20 = Skirmisher Patrol
+21 = Hunters
+23 = Jackals
+24 = Hunter Infantry
+26 = Skirmishers
+28 = Skirmisher Infantry
+30 = Heretic Snipers
+31 = Heretic Heavy
+
+NOTES:
+ - There are thirteen skulls available per round
+ - The struct that we call GameVariantHeader is also used for map variants; refer to our 
+   map variant JS prototype for full details and branches; we should amend our source 
+   code to reflect this.
+ - Turn Count is implemented via the Number of Rounds setting:
+    - No Limit   = 1 round
+    - One Each   = 2 rounds
+    - Two Each   = 4 rounds
+    - Three Each = 6 rounds
+
+
+OBSERVATIONS FROM TESTING:
+ - If teams are enabled, then the only thing they influence is player spawn locations. 
+   Your team species determines what loadouts you get, whether you're allied with the 
+   Covenant NPCs, and whether you can earn points for killing them (no, if you're an 
+   Elite).
+   
+   If teams are disabled, then all players are enemies of the Covenant NPCs, regardless 
+   of their species; however, Elites still neither earn nor lose points for killing 
+   them.
+
+ - Indestructible Vehicles does not apply to Covenant vehicles spawned during the 
+   match.
+   
+    - TODO: Test the Rocket Warthog on Beachhead.
+
+ - Vehicle Set does not apply to vehicles that spawn during the match. Unknown if it 
+   would apply to pre-placed onces.
+   
+    - TODO: Test the Rocket Warthog on Beachhead.
+
+ - The "X on Map" flags don't work; they're all cleared by default, but Turrets on Map 
+   being cleared doesn't prevent Overlook's turret from spawning.
+
+ - Respawn Traits work.
+
+ - The Round Time Limit option available in Custom Games works, and limits the length 
+   of the entire match.
+   
+    - The Round Limit option is used as the "backend" for the Turn Count option, which 
+      means that Firefight "rounds" are a separate concept from (and a subordinate 
+      concept to) "rounds" in general.
+
+ - Custom Game base-player traits work and presumably apply to all players, beneath 
+   the Firefight-specific per-species base traits.
+
+ - If a wave fails to spawn any enemies (either because all squad types were None, or 
+   because none of the squad types were available on the current map), then it will 
+   end instantly. If dropships are enabled, then "instantly" means that the next wave 
+   will begin once the dropships have departed the map. If dropships are disabled, 
+   then the wave ends after seven seconds. Note that if map hazards produce any 
+   enemies (e.g. drop pods, or Beachhead's Wraiths and Ghosts), those will count 
+   towards the wave spawning enemies, meaning that the wave will not be skipped.
+   
+   Sadly, multiplayer and the presence of player-Elites doesn't appear to affect this; 
+   if a perfect recreation of Network Test 1 is possible, it will take more than just 
+   setting the squad types to None (or the squad count to 0, for that matter). Moreover, 
+   new waves will still reset a dead Covenant player's respawn time, and since the 
+   default spawn time is 10 seconds and waves end in 7, that means that a Covenant 
+   player killed during a round won't respawn until it ends.
+   
+    - UPDATE: Examination of the map script establishes that it's actually nine seconds, 
+      not seven.
+
+ - The "Squad Count" option on waves doesn't allow you to change the number of squads 
+   that Firefight uses for any given wave; it just changes the number of squads in the 
+   game variant that are flagged as "defined." If you set all squad types in an initial 
+   wave to "None" and then change the Squad Count to 1, then you'll see 1 empty squad 
+   and 2 squads of Brutes (which are the value 0).
+
+ - If the Iron Skull is enabled for a non-bonus round, and all Spartans die yet still 
+   have lives remaining, then they will be unable to respawn (of course) but the round 
+   will not end (nor the match overall). This is a softlock.
+   
+   Disabling Iron Skull for the bonus round seems to prevent the endless enemy spawning?
+
+
+
+NETWORK TEST 1 RECREATION NOTES:
+
+ - Dead players' respawn timers are reset when a new wave begins. If we enable dropships, 
+   then we can at least increase wave durations long enough that this doesn't completely 
+   prevent players from respawning at all. Base Wave Traits appear to affect dropships' 
+   turrets: making them blind and deaf will prevent them from ever attacking anyone.
+   
+   Dead players' respawn timers being reset *at all* isn't ideal, however; the announcer 
+   calling "Reinforcements!" on each new wave isn't ideal either. Moreover, the constantly 
+   advancing waves cause weapon drops to occur roughly every 35 seconds as new rounds 
+   begin.
+
+ - In theory, the bonus wave could be used to ensure a single span of time during which 
+   no new waves will begin. The max bonus wave duration allowed by the file format is 
+   4095 seconds, which is well above the 5 minutes we'd need to recreate Network Test 1. 
+   The problem is that without dropships, it takes about 105 seconds to get to the bonus 
+   wave, during which time dead players will be effectively unable to respawn. With 
+   dropships, it would take about ten minutes to get to the bonus wave.
+   
+   Another issue is that the bonus round instantly ends if all Spartans die, even if the 
+   Iron Skull is disabled.
